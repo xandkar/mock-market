@@ -1,4 +1,4 @@
--module(ticker).
+-module(market).
 -compile(export_all).
 
 
