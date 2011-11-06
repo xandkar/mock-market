@@ -2,21 +2,42 @@
 -compile(export_all).
 
 
+%%%----------------------------------------------------------------------------
+%%% Controlls
+%%%----------------------------------------------------------------------------
+
 start() ->
-    MaxListings = 10,
+    MaxListings = 5,
+    MaxBrokers = 3,
     Listings = sets:to_list(sets:from_list(
         [random_symbol() || Stock <- lists:seq(1, MaxListings)]
     )),
 
     register(ticker, spawn(market, ticker, [])),
-    register(broker, spawn(market, broker, [Listings, ticker, 1000])).
+
+    Brokers = [
+        register(
+            list_to_atom(string:join(["broker", integer_to_list(I)], "_")),
+            spawn(market, broker, [Listings, ticker, 1000])
+        ) ||
+        I <- lists:seq(1, MaxBrokers)
+    ].
 
 
 stop() ->
-    broker ! stop,
+    MaxBrokers = 3,
+    Brokers = [
+        list_to_atom(string:join(["broker", integer_to_list(I)], "_"))||
+        I <- lists:seq(1, MaxBrokers)
+    ],
+
+    lists:foreach(fun(Broker) -> Broker ! stop end, Brokers),
     ticker ! stop.
 
 
+%%%----------------------------------------------------------------------------
+%%% Agents
+%%%----------------------------------------------------------------------------
 ticker() ->
     receive
         {price_query, Broker, Symbol} ->
@@ -33,7 +54,7 @@ ticker() ->
 broker(Listings, Ticker, Interval) ->
     receive
         {price_answer, Symbol, Price} ->
-            io:format("~p~n", [{Symbol, Price}]),
+            io:format("~p~n", [{self(), Symbol, Price}]),
             broker(Listings, Ticker, Interval);
         stop ->
             void;
@@ -46,6 +67,10 @@ broker(Listings, Ticker, Interval) ->
             broker(Listings, Ticker, Interval)
     end.
 
+
+%%%----------------------------------------------------------------------------
+%%% Helper functions
+%%%----------------------------------------------------------------------------
 
 random_symbol() ->
     CharPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -76,9 +101,7 @@ random_price() ->
     list_to_float(Price).
 
 
-%%-----------------------------------------------------------------------------
 %% Pick and return a random element from a given list
-%%-----------------------------------------------------------------------------
 choice(List) ->
     Maximum = length(List),
     Element = random:uniform(Maximum),
