@@ -3,17 +3,20 @@
 
 
 start() ->
-    Price = random_price(),
-    Symbol = random_symbol(),
+    MaxListings = 10,
+    Stocks = sets:to_list(sets:from_list(
+        [random_symbol() || S <- lists:seq(1, MaxListings)]
+    )),
+    Ticker = [{S, random_price()} || S <- Stocks],
 
-    Output = [[{symbol, Symbol}, {price, Price}]],
-
+    Output = [Ticker],
     io:format("~p~n", Output).
 
 
 random_symbol() ->
     CharPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    Symbol = [choice(CharPool) || S <- lists:seq(1, 3)],
+    LenPool = [1, 2, 3, 4],
+    Symbol = [choice(CharPool) || S <- lists:seq(1, choice(LenPool))],
     Symbol.
 
 
