@@ -1,23 +1,24 @@
 -module(market).
 -compile(export_all).
 
+-define(MAX_LISTINGS, 5).
+-define(MAX_BROKERS, 3).
+
 
 %%%----------------------------------------------------------------------------
 %%% Controlls
 %%%----------------------------------------------------------------------------
 
 start() ->
-    MaxListings = 5,
-    MaxBrokers = 3,
     Listings = sets:to_list(sets:from_list(
-        for(1, MaxListings, fun() -> random_symbol() end)
+        for(1, ?MAX_LISTINGS, fun() -> random_symbol() end)
     )),
 
     lists:foreach(
         fun(BrokerName) ->
             register(BrokerName, spawn(market, broker, []))
         end,
-        atoms_sequence("broker", "_", 1, MaxBrokers)
+        atoms_sequence("broker", "_", 1, ?MAX_BROKERS)
     ),
 
     Interval = 1000,
@@ -25,8 +26,7 @@ start() ->
 
 
 stop() ->
-    MaxBrokers = 3,
-    Brokers = atoms_sequence("broker", "_", 1, MaxBrokers),
+    Brokers = atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
 
     lists:foreach(fun(Broker) -> Broker ! stop end, Brokers),
     ticker_proc ! stop.
@@ -35,9 +35,9 @@ stop() ->
 %%%----------------------------------------------------------------------------
 %%% Agents
 %%%----------------------------------------------------------------------------
+
 ticker(Listings, Interval) ->
-    MaxBrokers = 3,
-    Brokers = atoms_sequence("broker", "_", 1, MaxBrokers),
+    Brokers = atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
 
     receive
         stop ->
