@@ -14,13 +14,10 @@ start() ->
     )),
 
     lists:foreach(
-        fun(I) ->
-            register(
-                list_to_atom(string:join(["broker", integer_to_list(I)], "_")),
-                spawn(market, broker, [])
-            )
+        fun(BrokerName) ->
+            register(BrokerName, spawn(market, broker, []))
         end,
-        lists:seq(1, MaxBrokers)
+        atoms_sequence("broker", "_", 1, MaxBrokers)
     ),
 
     Interval = 1000,
@@ -29,10 +26,7 @@ start() ->
 
 stop() ->
     MaxBrokers = 3,
-    Brokers = [
-        list_to_atom(string:join(["broker", integer_to_list(I)], "_")) ||
-        I <- lists:seq(1, MaxBrokers)
-    ],
+    Brokers = atoms_sequence("broker", "_", 1, MaxBrokers),
 
     lists:foreach(fun(Broker) -> Broker ! stop end, Brokers),
     ticker_proc ! stop.
@@ -43,10 +37,7 @@ stop() ->
 %%%----------------------------------------------------------------------------
 ticker(Listings, Interval) ->
     MaxBrokers = 3,
-    Brokers = [
-        list_to_atom(string:join(["broker", integer_to_list(I)], "_")) ||
-        I <- lists:seq(1, MaxBrokers)
-    ],
+    Brokers = atoms_sequence("broker", "_", 1, MaxBrokers),
 
     receive
         stop ->
@@ -57,12 +48,15 @@ ticker(Listings, Interval) ->
     after Interval ->
             Prices = [{Symbol, random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
+
+            % Broadcast prices to brokers
             lists:foreach(
                 fun(Broker) ->
                         Broker ! Message
                 end, 
                 Brokers
             ),
+
             ticker(Listings, Interval)
     end.
 
@@ -81,7 +75,7 @@ broker() ->
 
 
 %%%----------------------------------------------------------------------------
-%%% Helper functions
+%%% Helpers
 %%%----------------------------------------------------------------------------
 
 %% Generates a random stock symbol
@@ -126,3 +120,14 @@ for(Max, Max, Function) ->
 
 for(Init, Max, Function) ->
     [Function() | for(Init + 1, Max, Function)].
+
+
+%% Generate a list of numerically sequential atoms:
+%% [atom_1, atom_2, ...]
+atoms_sequence(String, Separator, FromNum, ToNum) ->
+    [
+        list_to_atom(
+            string:join([String, integer_to_list(I)], Separator)
+        ) ||
+        I <- lists:seq(FromNum, ToNum)
+    ].
