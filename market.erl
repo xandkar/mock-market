@@ -62,9 +62,44 @@ ticker(Listings, Interval) ->
 
 
 broker() ->
+    Portfolio = dict:new(),
+    Transactions = [],
+    broker(Portfolio, Transactions).
+
+broker(Portfolio, Transactions) ->
+    Buy = fun(
+            GivenSymbol,
+            GivenPrice,
+            GivenShares,
+            GivenPortfolio,
+            GivenTransactions) ->
+
+                NewPortfolio = dict:update(
+                    GivenSymbol,
+                    fun(Shares) -> GivenShares + Shares end,
+                    _InitialShares = 0,
+                    GivenPortfolio
+                ),
+
+                NewTransactions =
+                    [-(GivenPrice * GivenShares) | GivenTransactions],
+
+                {NewPortfolio, NewTransactions}
+    end,
+
     receive
         {ticker, {prices, Prices}} ->
-            io:format("~p~n", [{self(), choice(Prices)}]),
+            lists:foreach(
+                fun({Symbol, Price}) ->
+                        {NewPortfolio, NewTransactions} = Buy(
+                            Symbol, Price, 1, Portfolio, Transactions
+                        ),
+                        io:format("~p~n", [NewPortfolio]),
+                        io:format("~p~n", [NewTransactions])
+                end,
+                Prices
+            ),
+
             broker();
         stop ->
             void;
