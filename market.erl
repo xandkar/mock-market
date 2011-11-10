@@ -4,7 +4,7 @@
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
--define(MAX_RANDOM_SLEEP, 100).
+-define(MAX_RANDOM_SLEEP, 10).
 
 
 %%%----------------------------------------------------------------------------
