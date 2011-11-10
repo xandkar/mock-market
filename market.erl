@@ -78,51 +78,51 @@ broker() ->
     broker(Portfolio, Transactions).
 
 broker(Portfolio, Transactions) ->
-    Buy = fun(
-            GivenSymbol,
-            GivenPrice,
-            GivenShares,
-            GivenPortfolio,
-            GivenTransactions) ->
-
-                NewPortfolio = dict:update(
-                    GivenSymbol,
-                    fun(Shares) -> GivenShares + Shares end,
-                    _InitialShares = 0,
-                    GivenPortfolio
-                ),
-
-                NewTransactions =
-                    [-(GivenPrice * GivenShares) | GivenTransactions],
-
-                {NewPortfolio, NewTransactions}
-    end,
-
     receive
         {ticker, {prices, Prices}} ->
-            lists:foreach(
-                fun({Symbol, Price}) ->
-                        {NewPortfolio, NewTransactions} = Buy(
-                            Symbol, Price, 1, Portfolio, Transactions
-                        ),
-                        io:format("~p~n", [NewPortfolio]),
-                        io:format("~p~n", [NewTransactions])
-                end,
-                Prices
+            {Symbol, Price} = choice(Prices),
+            {NewPortfolio, NewTransactions} = transaction(
+                choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
             ),
-
-            broker();
+            io:format("~p~n", [dict:to_list(NewPortfolio)]),
+            io:format("~p~n", [NewTransactions]),
+            io:format("~n"),
+            broker(NewPortfolio, NewTransactions);
         stop ->
             void;
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
-            broker()
+            broker(Portfolio, Transactions)
     end.
 
 
 %%%----------------------------------------------------------------------------
 %%% Helpers
 %%%----------------------------------------------------------------------------
+
+transaction(Type, Symbol, Price, Shares, Portfolio, PastTransactions) ->
+    NewPortfolio = dict:update(
+        Symbol,
+        case Type of
+            buy  -> fun(CurrentShares) -> CurrentShares + Shares end;
+            sell -> fun(CurrentShares) -> CurrentShares - Shares end
+        end,
+        _InitialShares =
+            case Type of
+                buy  -> + Shares;
+                sell -> - Shares
+            end,
+        Portfolio
+    ),
+
+    NewTransactions =
+        case Type of
+            buy  -> [-(Price * Shares) | PastTransactions];
+            sell -> [+(Price * Shares) | PastTransactions]
+        end,
+
+    {NewPortfolio, NewTransactions}.
+
 
 %% Generates a random stock symbol
 random_symbol() ->
