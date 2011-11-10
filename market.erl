@@ -1,8 +1,8 @@
 -module(market).
 -compile(export_all).
 
--define(MAX_LISTINGS, 5).
--define(MAX_BROKERS, 3).
+-define(NUM_LISTINGS, 5).
+-define(NUM_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
 -define(MAX_RANDOM_SLEEP, 100).
 
@@ -15,7 +15,7 @@ start() ->
 
     % Generate listings
     Listings = sets:to_list(sets:from_list(
-        for(1, ?MAX_LISTINGS, fun() -> random_symbol() end)
+        for(1, ?NUM_LISTINGS, fun() -> random_symbol() end)
     )),
 
     % Register & spawn brokers
@@ -23,7 +23,7 @@ start() ->
         fun(BrokerName) ->
             register(BrokerName, spawn(market, broker, []))
         end,
-        atoms_sequence("broker", "_", 1, ?MAX_BROKERS)
+        atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
     ),
 
     % Register & spawn ticker
@@ -34,7 +34,7 @@ start() ->
 %% Sends 'stop' message to all registered procs
 %%
 stop() ->
-    Procs = [ticker_proc] ++ atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
+    Procs = [ticker_proc] ++ atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
     lists:foreach(fun(Proc) -> Proc ! stop end, Procs).
 
 
@@ -46,7 +46,7 @@ stop() ->
 %% Announces current prices to brokers
 %%
 ticker(Listings, Interval) ->
-    Brokers = atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
+    Brokers = atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
     receive
         stop ->
