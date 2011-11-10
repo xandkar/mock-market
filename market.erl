@@ -4,7 +4,7 @@
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
--define(MAX_RANDOM_SLEEP, 10).
+-define(MAX_RANDOM_SLEEP, 100).
 
 
 %%%----------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 start() ->
 
     % Generate listings
+    reseed(),
     Listings = sets:to_list(sets:from_list(
         [random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
@@ -55,6 +56,7 @@ ticker(Listings, Interval) ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
             ticker(Listings, Interval)
     after Interval ->
+            reseed(),
             Prices = [{Symbol, random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
 
@@ -81,6 +83,7 @@ broker() ->
 broker(Portfolio, Transactions) ->
     receive
         {ticker, {prices, Prices}} ->
+            reseed(),
             {Symbol, Price} = choice(Prices),
             {NewPortfolio, NewTransactions} = transaction(
                 choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
@@ -153,11 +156,14 @@ random_price() ->
 
 %% Pick and return a random element from a given list
 choice(List) ->
-    random:seed(now()),
-    timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)),
     Maximum = length(List),
     Element = random:uniform(Maximum),
     lists:nth(Element, List).
+
+
+reseed() ->
+    random:seed(now()),
+    timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)).
 
 
 %% Generate a list of numerically sequential atoms:
