@@ -3,6 +3,7 @@
 
 -define(MAX_LISTINGS, 5).
 -define(MAX_BROKERS, 3).
+-define(TICKER_INTERVAL, 1000).
 
 
 %%%----------------------------------------------------------------------------
@@ -21,8 +22,7 @@ start() ->
         atoms_sequence("broker", "_", 1, ?MAX_BROKERS)
     ),
 
-    Interval = 1000,
-    register(ticker_proc, spawn(market, ticker, [Listings, Interval])).
+    register(ticker_proc, spawn(market, ticker, [Listings, ?TICKER_INTERVAL])).
 
 
 stop() ->
