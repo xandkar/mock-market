@@ -4,6 +4,7 @@
 -define(MAX_LISTINGS, 5).
 -define(MAX_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
+-define(MAX_RANDOM_SLEEP, 100).
 
 
 %%%----------------------------------------------------------------------------
@@ -84,6 +85,7 @@ broker(Portfolio, Transactions) ->
             {NewPortfolio, NewTransactions} = transaction(
                 choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
             ),
+            io:format("~p~n", [Prices]),
             io:format("~p~n", [dict:to_list(NewPortfolio)]),
             io:format("~p~n", [NewTransactions]),
             io:format("~n"),
@@ -155,6 +157,8 @@ random_price() ->
 
 %% Pick and return a random element from a given list
 choice(List) ->
+    random:seed(now()),
+    timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)),
     Maximum = length(List),
     Element = random:uniform(Maximum),
     lists:nth(Element, List).
