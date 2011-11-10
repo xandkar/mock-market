@@ -11,10 +11,13 @@
 %%%----------------------------------------------------------------------------
 
 start() ->
+
+    % Generate listings
     Listings = sets:to_list(sets:from_list(
         for(1, ?MAX_LISTINGS, fun() -> random_symbol() end)
     )),
 
+    % Register & spawn brokers
     lists:foreach(
         fun(BrokerName) ->
             register(BrokerName, spawn(market, broker, []))
@@ -22,20 +25,25 @@ start() ->
         atoms_sequence("broker", "_", 1, ?MAX_BROKERS)
     ),
 
+    % Register & spawn ticker
     register(ticker_proc, spawn(market, ticker, [Listings, ?TICKER_INTERVAL])).
 
 
+%%
+%% Sends 'stop' message to all registered procs
+%%
 stop() ->
-    Brokers = atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
-
-    lists:foreach(fun(Broker) -> Broker ! stop end, Brokers),
-    ticker_proc ! stop.
+    Procs = [ticker_proc] ++ atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
+    lists:foreach(fun(Proc) -> Proc ! stop end, Procs).
 
 
 %%%----------------------------------------------------------------------------
 %%% Agents
 %%%----------------------------------------------------------------------------
 
+%%
+%% Announces current prices to brokers
+%%
 ticker(Listings, Interval) ->
     Brokers = atoms_sequence("broker", "_", 1, ?MAX_BROKERS),
 
@@ -61,6 +69,9 @@ ticker(Listings, Interval) ->
     end.
 
 
+%%
+%% Listens for current prices and either buys or sells
+%%
 broker() ->
     Portfolio = dict:new(),
     Transactions = [],
