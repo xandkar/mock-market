@@ -4,7 +4,7 @@
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
--define(MAX_RANDOM_SLEEP, 100).
+-define(MAX_RANDOM_SLEEP, 10).
 
 
 %%%----------------------------------------------------------------------------
@@ -81,6 +81,8 @@ broker() ->
     broker(Portfolio, Transactions).
 
 broker(Portfolio, Transactions) ->
+    {registered_name, ProcName} = erlang:process_info(self(), registered_name),
+    CashBalance = lists:sum(Transactions),
     receive
         {ticker, {prices, Prices}} ->
             reseed(),
@@ -88,10 +90,9 @@ broker(Portfolio, Transactions) ->
             {NewPortfolio, NewTransactions} = transaction(
                 choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
             ),
-            io:format("~p~n", [Prices]),
-            io:format("~p~n", [dict:to_list(NewPortfolio)]),
-            io:format("~p~n", [NewTransactions]),
-            io:format("~n"),
+            NewCashBalance = lists:sum(NewTransactions),
+            CashDelta = NewCashBalance - CashBalance,
+            io:format("~p CASH DELTA:~p~n", [ProcName, CashDelta]),
             broker(NewPortfolio, NewTransactions);
         stop ->
             void;
