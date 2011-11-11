@@ -13,7 +13,6 @@
 start() ->
 
     % Generate listings
-    reseed(),
     Listings = sets:to_list(sets:from_list(
         [random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
@@ -55,7 +54,6 @@ ticker(Listings, Interval) ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
             ticker(Listings, Interval)
     after Interval ->
-            reseed(),
             Prices = [{Symbol, random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
 
@@ -84,7 +82,6 @@ broker(Portfolio, Transactions) ->
     CashBalance = lists:sum(Transactions),
     receive
         {ticker, {prices, Prices}} ->
-            reseed(),
             {Symbol, Price} = choice(Prices),
             {NewPortfolio, NewTransactions} = transaction(
                 choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
@@ -157,6 +154,7 @@ random_price() ->
 
 %% Pick and return a random element from a given list
 choice(List) ->
+    reseed(),
     Maximum = length(List),
     Element = random:uniform(Maximum),
     lists:nth(Element, List).
