@@ -90,9 +90,30 @@ broker(Portfolio, Transactions) ->
             {NewPortfolio, NewTransactions} = transaction(
                 choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
             ),
+
             NewCashBalance = lists:sum(NewTransactions),
             CashDelta = NewCashBalance - CashBalance,
+
+            OldPortfolioValue = lists:sum(
+                [
+                    P * dict:fetch(S, Portfolio) ||
+                    {S, P} <- Prices,
+                    dict:is_key(S, Portfolio)
+                ]
+            ),
+
+            NewPortfolioValue = lists:sum(
+                [
+                    P * dict:fetch(S, NewPortfolio) ||
+                    {S, P} <- Prices,
+                    dict:is_key(S, NewPortfolio)
+                ]
+            ),
+
+            PortfolioDelta = NewPortfolioValue - OldPortfolioValue,
+
             io:format("~p CASH DELTA:~p~n", [ProcName, CashDelta]),
+            io:format("~p PORTFOLIO DELTA:~p~n", [ProcName, PortfolioDelta]),
             broker(NewPortfolio, NewTransactions);
         stop ->
             void;
