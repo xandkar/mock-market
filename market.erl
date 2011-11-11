@@ -196,6 +196,15 @@ timestamp() ->
     list_to_float(Timestamp).
 
 
+%% Generates a cryptographically unique integer based on current time
+timehash() ->
+    Timestamp = float_to_list(timestamp()),
+    HashBin  = crypto:sha(Timestamp),
+    HashList = [integer_to_list(I) || I <- binary_to_list(HashBin)],
+    HashStr  = string:join(HashList, ""),
+    list_to_integer(HashStr).
+
+
 %% Generate a list of numerically sequential atoms:
 %% [atom_1, atom_2, ...]
 atoms_sequence(String, Separator, FromNum, ToNum) ->
