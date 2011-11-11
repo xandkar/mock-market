@@ -84,14 +84,17 @@ broker(Portfolio, Transactions) ->
     receive
         {ticker, {prices, Prices}} ->
             {Symbol, Price} = choice(Prices),
-            {NewPortfolio, NewTransactions} = transaction(
+
+            TransactionData = {
                 choice([buy, sell]),
                 Symbol,
                 Price,
                 choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
                 Portfolio,
                 Transactions
-            ),
+            },
+
+            {NewPortfolio, NewTransactions} = transaction(TransactionData),
 
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
@@ -110,7 +113,7 @@ broker(Portfolio, Transactions) ->
 %%% Helpers
 %%%----------------------------------------------------------------------------
 
-transaction(Type, Symbol, Price, Shares, Portfolio, PastTransactions) ->
+transaction({Type, Symbol, Price, Shares, Portfolio, PastTransactions}) ->
     NewPortfolio = dict:update(
         Symbol,
         case Type of
