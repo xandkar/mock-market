@@ -93,7 +93,8 @@ broker(Portfolio, Transactions) ->
                 Transactions
             ),
 
-            io:format("~p PORTFOLIO:~p~n", [ProcName, dict:to_list(NewPortfolio)]),
+            NewPortfolioList = dict:to_list(NewPortfolio),
+            io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
             io:format("~n"),
             broker(NewPortfolio, NewTransactions);
