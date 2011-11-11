@@ -183,8 +183,9 @@ choice(List) ->
     lists:nth(Element, List).
 
 
+%% Reseed pseudorandom number generator
 reseed() ->
-    random:seed(now()),
+    random:seed(timehash(), timehash(), timehash()),
     timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)).
 
 
