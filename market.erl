@@ -4,6 +4,7 @@
 -define(TICKER_INTERVAL, 1000).
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
+-define(MAX_SHARES_PER_TRANSACTION, 10).
 
 
 %%%----------------------------------------------------------------------------
@@ -84,7 +85,12 @@ broker(Portfolio, Transactions) ->
         {ticker, {prices, Prices}} ->
             {Symbol, Price} = choice(Prices),
             {NewPortfolio, NewTransactions} = transaction(
-                choice([buy, sell]), Symbol, Price, 1, Portfolio, Transactions
+                choice([buy, sell]),
+                Symbol,
+                Price,
+                choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
+                Portfolio,
+                Transactions
             ),
 
             io:format("~p PORTFOLIO:~p~n", [ProcName, dict:to_list(NewPortfolio)]),
