@@ -4,7 +4,6 @@
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(TICKER_INTERVAL, 1000).
--define(MAX_RANDOM_SLEEP, 10).
 
 
 %%%----------------------------------------------------------------------------
@@ -165,8 +164,7 @@ choice(List) ->
 
 %% Reseed pseudorandom number generator
 reseed() ->
-    random:seed(timehash(), timehash(), timehash()),
-    timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)).
+    random:seed(timehash(), timehash(), timehash()).
 
 
 %% Generates a Unix timestamp float
