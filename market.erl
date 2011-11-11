@@ -188,6 +188,14 @@ reseed() ->
     timer:sleep(random:uniform(?MAX_RANDOM_SLEEP)).
 
 
+%% Generates a Unix timestamp float
+timestamp() ->
+    [Mega, Sec, Micro] = [integer_to_list(I) || I <- tuple_to_list(now())],
+    Seconds = string:join([Mega, Sec], ""),
+    Timestamp = string:join([Seconds, Micro], "."),
+    list_to_float(Timestamp).
+
+
 %% Generate a list of numerically sequential atoms:
 %% [atom_1, atom_2, ...]
 atoms_sequence(String, Separator, FromNum, ToNum) ->
