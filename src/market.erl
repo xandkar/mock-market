@@ -154,7 +154,6 @@ scribe(LogFile) ->
             io:format(LogFile, "~s~n", [LogEntry]),
             scribe(LogFile);
         stop ->
-            void,
             file:close(LogFile);
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
