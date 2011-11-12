@@ -6,6 +6,11 @@
 -define(NUM_BROKERS, 3).
 -define(MAX_SHARES_PER_TRANSACTION, 10).
 
+-define(PATH_DIR__DATA, "data").
+-define(PATH_FILE__LOG,
+    string:join([?PATH_DIR__DATA, "transactions.log"], "/")
+).
+
 
 %%%----------------------------------------------------------------------------
 %%% Controlls
@@ -126,8 +131,8 @@ broker(Portfolio, Transactions) ->
 
 
 scribe() ->
-    file:make_dir("data"),
-    {ok, LogFile} = file:open("data/transactions.log", write),
+    file:make_dir(?PATH_DIR__DATA),
+    {ok, LogFile} = file:open(?PATH_FILE__LOG, write),
     scribe(LogFile).
 
 scribe(LogFile) ->
