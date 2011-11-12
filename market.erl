@@ -18,6 +18,9 @@ start() ->
         [random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
 
+    % Register & spawn scribe
+    register(scribe_proc, spawn(market, scribe, [])),
+
     % Register & spawn brokers
     lists:foreach(
         fun(BrokerName) ->
@@ -34,7 +37,10 @@ start() ->
 %% Sends 'stop' message to all registered procs
 %%
 stop() ->
-    Procs = [ticker_proc] ++ atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
+    Procs = [ticker_proc]
+            ++ atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
+            ++ [scribe_proc],
+
     lists:foreach(fun(Proc) -> Proc ! stop end, Procs).
 
 
@@ -102,6 +108,9 @@ broker(Portfolio, Transactions) ->
                 Transactions
             ),
 
+            % Send to scribe for recording
+            scribe_proc ! {ProcName, transaction_data, TransactionData},
+
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
@@ -113,6 +122,36 @@ broker(Portfolio, Transactions) ->
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
             broker(Portfolio, Transactions)
+    end.
+
+
+scribe() ->
+    file:make_dir("data"),
+    {ok, LogFile} = file:open("data/transactions.log", write),
+    scribe(LogFile).
+
+scribe(LogFile) ->
+    receive
+        {ProcName, transaction_data, TransactionData} ->
+            {TransactionType, Symbol, Price, NumberOfShares} = TransactionData,
+
+            LogEntryData = [
+                atom_to_list(ProcName),
+                atom_to_list(TransactionType),
+                Symbol,
+                integer_to_list(NumberOfShares),
+                float_to_list(Price)
+            ],
+
+            LogEntry = string:join(LogEntryData, "\t"),
+            io:format(LogFile, "~s~n", [LogEntry]),
+            scribe(LogFile);
+        stop ->
+            void,
+            file:close(LogFile);
+        Other ->
+            io:format("WARNING! Unexpected message: ~p~n", [Other]),
+            scribe(LogFile)
     end.
 
 
