@@ -6,6 +6,8 @@
 -define(NUM_BROKERS, 3).
 -define(MAX_SHARES_PER_TRANSACTION, 10).
 
+-define(LOG_FIELD_DELIMITER, "\t").
+
 -define(PATH_DIR__DATA, "data").
 -define(PATH_FILE__LOG,
     string:join([?PATH_DIR__DATA, "transactions.log"], "/")
@@ -148,7 +150,7 @@ scribe(LogFile) ->
                 float_to_list(Price)
             ],
 
-            LogEntry = string:join(LogEntryData, "\t"),
+            LogEntry = string:join(LogEntryData, ?LOG_FIELD_DELIMITER),
             io:format(LogFile, "~s~n", [LogEntry]),
             scribe(LogFile);
         stop ->
