@@ -81,25 +81,32 @@ broker() ->
 broker(Portfolio, Transactions) ->
     {registered_name, ProcName} = erlang:process_info(self(), registered_name),
     CashBalance = lists:sum(Transactions),
+
     receive
         {ticker, {prices, Prices}} ->
             {Symbol, Price} = choice(Prices),
+            TransactionType = choice([buy, sell]),
+            NumberOfShares = choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
 
             TransactionData = {
-                choice([buy, sell]),
+                TransactionType,
                 Symbol,
                 Price,
-                choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
-                Portfolio,
-                Transactions
+                NumberOfShares
             },
 
-            {NewPortfolio, NewTransactions} = transaction(TransactionData),
+            % Perform transaction
+            {NewPortfolio, NewTransactions} = transaction(
+                TransactionData,
+                Portfolio,
+                Transactions
+            ),
 
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
             io:format("~n"),
+
             broker(NewPortfolio, NewTransactions);
         stop ->
             void;
@@ -113,7 +120,7 @@ broker(Portfolio, Transactions) ->
 %%% Helpers
 %%%----------------------------------------------------------------------------
 
-transaction({Type, Symbol, Price, Shares, Portfolio, PastTransactions}) ->
+transaction({Type, Symbol, Price, Shares}, Portfolio, PastTransactions) ->
     NewPortfolio = dict:update(
         Symbol,
         case Type of
