@@ -1,3 +1,12 @@
+%%%----------------------------------------------------------------------------
+%%% Copyright (c) 2011 Siraaj Khandkar
+%%% Licensed under MIT license. See LICENSE file for details.
+%%%
+%%% File    : market.erl
+%%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
+%%% Purpose : Simple stock market simulation.
+%%%----------------------------------------------------------------------------
+
 -module(market).
 -compile(export_all).
 
@@ -5,19 +14,21 @@
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(MAX_SHARES_PER_TRANSACTION, 10).
-
 -define(LOG_FIELD_DELIMITER, "\t").
-
 -define(PATH_DIR__DATA, "data").
 -define(PATH_FILE__LOG,
     string:join([?PATH_DIR__DATA, "transactions.log"], "/")
 ).
 
 
-%%%----------------------------------------------------------------------------
-%%% Controlls
-%%%----------------------------------------------------------------------------
+%%============================================================================
+%% Controlls
+%%============================================================================
 
+%%-----------------------------------------------------------------------------
+%% Function : start/0
+%% Purpose  : Starts the simulation.
+%%-----------------------------------------------------------------------------
 start() ->
 
     % Generate listings
@@ -40,9 +51,10 @@ start() ->
     register(ticker_proc, spawn(market, ticker, [Listings, ?TICKER_INTERVAL])).
 
 
-%%
-%% Sends 'stop' message to all registered procs
-%%
+%%-----------------------------------------------------------------------------
+%% Function : stop/0
+%% Purpose  : Stops the simulation.
+%%-----------------------------------------------------------------------------
 stop() ->
     Procs = [ticker_proc]
             ++ atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
@@ -51,13 +63,14 @@ stop() ->
     lists:foreach(fun(Proc) -> Proc ! stop end, Procs).
 
 
-%%%----------------------------------------------------------------------------
-%%% Agents
-%%%----------------------------------------------------------------------------
+%%============================================================================
+%% Agents
+%%============================================================================
 
-%%
-%% Announces current prices to brokers
-%%
+%%-----------------------------------------------------------------------------
+%% Function : ticker/2
+%% Purpose  : Announces current prices to brokers.
+%%-----------------------------------------------------------------------------
 ticker(Listings, Interval) ->
     Brokers = atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
@@ -83,9 +96,10 @@ ticker(Listings, Interval) ->
     end.
 
 
-%%
-%% Listens for current prices and either buys or sells
-%%
+%%-----------------------------------------------------------------------------
+%% Function : broker/0
+%% Purpose  : Receives current prices and either buys or sells.
+%%-----------------------------------------------------------------------------
 broker() ->
     Portfolio = dict:new(),
     Transactions = [],
@@ -132,6 +146,10 @@ broker(Portfolio, Transactions) ->
     end.
 
 
+%%-----------------------------------------------------------------------------
+%% Function : scribe/0
+%% Purpose  : Receives transaction data and writes it to log file.
+%%-----------------------------------------------------------------------------
 scribe() ->
     file:make_dir(?PATH_DIR__DATA),
     {ok, LogFile} = file:open(?PATH_FILE__LOG, write),
@@ -161,10 +179,15 @@ scribe(LogFile) ->
     end.
 
 
-%%%----------------------------------------------------------------------------
-%%% Helpers
-%%%----------------------------------------------------------------------------
+%%============================================================================
+%% Helpers
+%%============================================================================
 
+%%-----------------------------------------------------------------------------
+%% Function : transaction/3
+%% Purpose  : Modifies portfolio dict and transactions list in accordance with
+%%            transaction data.
+%%-----------------------------------------------------------------------------
 transaction({Type, Symbol, Price, Shares}, Portfolio, PastTransactions) ->
     NewPortfolio = dict:update(
         Symbol,
@@ -189,7 +212,10 @@ transaction({Type, Symbol, Price, Shares}, Portfolio, PastTransactions) ->
     {NewPortfolio, NewTransactions}.
 
 
-%% Generates a random stock symbol
+%%-----------------------------------------------------------------------------
+%% Function : random_symbol/0
+%% Purpose  : Generates a random stock symbol.
+%%-----------------------------------------------------------------------------
 random_symbol() ->
     CharPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     LenPool = [1, 2, 3, 4],
@@ -197,7 +223,10 @@ random_symbol() ->
     Symbol.
 
 
-%% Generates a random price
+%%-----------------------------------------------------------------------------
+%% Function : random_price/0
+%% Purpose  : Generates a random price.
+%%-----------------------------------------------------------------------------
 random_price() ->
     DigPool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     LenPool = [1, 2, 3],
@@ -214,7 +243,10 @@ random_price() ->
     list_to_float(Price).
 
 
-%% Pick and return a random element from a given list
+%%-----------------------------------------------------------------------------
+%% Function : choice/1
+%% Purpose  : Pick and return a random element from a given list.
+%%-----------------------------------------------------------------------------
 choice(List) ->
     reseed(),
     Maximum = length(List),
@@ -222,12 +254,18 @@ choice(List) ->
     lists:nth(Element, List).
 
 
-%% Reseed pseudorandom number generator
+%%-----------------------------------------------------------------------------
+%% Function : reseed/0
+%% Purpose  : Reseed pseudorandom number generator.
+%%-----------------------------------------------------------------------------
 reseed() ->
     random:seed(timehash(), timehash(), timehash()).
 
 
-%% Generates a Unix timestamp float
+%%-----------------------------------------------------------------------------
+%% Function : timestamp/0
+%% Purpose  : Generates a Unix timestamp float.
+%%-----------------------------------------------------------------------------
 timestamp() ->
     [Mega, Sec, Micro] = [integer_to_list(I) || I <- tuple_to_list(now())],
     Seconds = string:join([Mega, Sec], ""),
@@ -235,7 +273,11 @@ timestamp() ->
     list_to_float(Timestamp).
 
 
-%% Generates a cryptographically unique integer based on current time
+%%-----------------------------------------------------------------------------
+%% Function : timehash/0
+%% Purpose  : Generates a cryptographically unique integer based on current
+%%            time.
+%%-----------------------------------------------------------------------------
 timehash() ->
     Timestamp = float_to_list(timestamp()),
     HashBin  = crypto:sha(Timestamp),
@@ -244,8 +286,11 @@ timehash() ->
     list_to_integer(HashStr).
 
 
-%% Generate a list of numerically sequential atoms:
-%% [atom_1, atom_2, ...]
+%%-----------------------------------------------------------------------------
+%% Function : atoms_sequence/4
+%% Purpose  : Generate a list of numerically sequential atoms:
+%%           [atom_1, atom_2, ...]
+%%-----------------------------------------------------------------------------
 atoms_sequence(String, Separator, FromNum, ToNum) ->
     [
         list_to_atom(
