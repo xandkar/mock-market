@@ -15,7 +15,8 @@
         random_symbol/0,
         random_price/0,
         choice/1,
-        atoms_sequence/4
+        atoms_sequence/4,
+        timestamp/0
     ]
 ).
 

@@ -15,7 +15,8 @@
         choice/1,
         random_symbol/0,
         random_price/0,
-        transaction/3
+        transaction/3,
+        timestamp/0
     ]
 ).
 
@@ -103,7 +104,11 @@ broker(Portfolio, Transactions) ->
             ),
 
             % Send to scribe for recording
-            scribe_proc ! {ProcName, transaction_data, TransactionData},
+            scribe_proc ! {
+                ProcName,
+                {timestamp, timestamp()},
+                {transaction_data, TransactionData}
+            },
 
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
@@ -135,10 +140,16 @@ scribe() ->
 %%-----------------------------------------------------------------------------
 scribe(LogFile) ->
     receive
-        {ProcName, transaction_data, TransactionData} ->
+        {
+            ProcName,
+            {timestamp, TimeStamp},
+            {transaction_data, TransactionData}
+        } ->
+
             {TransactionType, Symbol, Price, NumberOfShares} = TransactionData,
 
             LogEntryData = [
+                float_to_list(TimeStamp),
                 atom_to_list(ProcName),
                 atom_to_list(TransactionType),
                 Symbol,
