@@ -8,7 +8,7 @@
 %%%----------------------------------------------------------------------------
 
 -module(market).
--compile(export_all).
+-export([start/0, stop/0, ticker/2, broker/0, scribe/0]).
 
 -include("market.hrl").
 
