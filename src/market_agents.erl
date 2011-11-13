@@ -8,15 +8,23 @@
 %%%----------------------------------------------------------------------------
 
 -module(market_agents).
--export([ticker/1, broker/0, scribe/0]).
+-export([ticker/0, broker/0, scribe/0]).
 
 -include("market.hrl").
 
 
 %%-----------------------------------------------------------------------------
-%% Function : ticker/2
+%% Function : ticker/0
 %% Purpose  : Announces current prices to brokers.
 %%-----------------------------------------------------------------------------
+ticker() ->
+    % Generate listings
+    Listings = sets:to_list(sets:from_list(
+        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
+    )),
+
+    ticker(Listings).
+
 ticker(Listings) ->
     Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 

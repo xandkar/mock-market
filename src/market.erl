@@ -19,11 +19,6 @@
 %%-----------------------------------------------------------------------------
 start() ->
 
-    % Generate listings
-    Listings = sets:to_list(sets:from_list(
-        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
-    )),
-
     % Register & spawn scribe
     register(scribe_proc, spawn(market_agents, scribe, [])),
 
@@ -36,7 +31,7 @@ start() ->
     ),
 
     % Register & spawn ticker
-    register(ticker_proc, spawn(market_agents, ticker, [Listings])).
+    register(ticker_proc, spawn(market_agents, ticker, [])).
 
 
 %%-----------------------------------------------------------------------------
