@@ -2,7 +2,7 @@
 %%% Copyright (c) 2011 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market.hrl
+%%% File    : market_config.hrl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Global configuration knobs.
 %%%----------------------------------------------------------------------------
