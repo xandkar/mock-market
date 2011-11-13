@@ -11,7 +11,7 @@
 -export([start/0, stop/0]).
 -import(market_lib, [atoms_sequence/4]).
 
--include("market.hrl").
+-include("market_config.hrl").
 
 
 %%-----------------------------------------------------------------------------
