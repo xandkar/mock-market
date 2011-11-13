@@ -15,7 +15,7 @@
 
 %%-----------------------------------------------------------------------------
 %% Function : ticker/0
-%% Purpose  : Announces current prices to brokers.
+%% Purpose  : Generates a set of listings and starts ticker/1.
 %%-----------------------------------------------------------------------------
 ticker() ->
     % Generate listings
@@ -25,6 +25,11 @@ ticker() ->
 
     ticker(Listings).
 
+
+%%-----------------------------------------------------------------------------
+%% Function : ticker/1
+%% Purpose  : Announces current prices to brokers.
+%%-----------------------------------------------------------------------------
 ticker(Listings) ->
     Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
@@ -52,13 +57,18 @@ ticker(Listings) ->
 
 %%-----------------------------------------------------------------------------
 %% Function : broker/0
-%% Purpose  : Receives current prices and either buys or sells.
+%% Purpose  : Initializes empty data containers and starts broker/2.
 %%-----------------------------------------------------------------------------
 broker() ->
     Portfolio = dict:new(),
     Transactions = [],
     broker(Portfolio, Transactions).
 
+
+%%-----------------------------------------------------------------------------
+%% Function : broker/2
+%% Purpose  : Receives current prices and either buys or sells.
+%%-----------------------------------------------------------------------------
 broker(Portfolio, Transactions) ->
     {registered_name, ProcName} = erlang:process_info(self(), registered_name),
     CashBalance = lists:sum(Transactions),
@@ -102,13 +112,18 @@ broker(Portfolio, Transactions) ->
 
 %%-----------------------------------------------------------------------------
 %% Function : scribe/0
-%% Purpose  : Receives transaction data and writes it to log file.
+%% Purpose  : Opens log file for writing and starts scribe/1.
 %%-----------------------------------------------------------------------------
 scribe() ->
     file:make_dir(?PATH_DIR__DATA),
     {ok, LogFile} = file:open(?PATH_FILE__LOG, write),
     scribe(LogFile).
 
+
+%%-----------------------------------------------------------------------------
+%% Function : scribe/1
+%% Purpose  : Receives transaction data and writes it to log file.
+%%-----------------------------------------------------------------------------
 scribe(LogFile) ->
     receive
         {ProcName, transaction_data, TransactionData} ->
