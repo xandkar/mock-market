@@ -20,7 +20,9 @@
     ]
 ).
 
+
 -include("market_config.hrl").
+-include("market_types.hrl").
 
 
 %%-----------------------------------------------------------------------------
@@ -46,9 +48,11 @@ ticker(Listings) ->
     receive
         stop ->
             void;
+
         Other ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
             ticker(Listings)
+
     after ?TICKER_INTERVAL ->
             Prices = [{Symbol, random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
@@ -89,11 +93,13 @@ broker(Portfolio, Transactions) ->
             TransactionType = choice([buy, sell]),
             NumberOfShares = choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
 
-            TransactionData = {
-                TransactionType,
-                Symbol,
-                Price,
-                NumberOfShares
+            TransactionData = #transaction{
+                timestamp = timestamp(),
+                broker = ProcName,
+                type = TransactionType,
+                symbol = Symbol,
+                shares = NumberOfShares,
+                price = Price
             },
 
             % Perform transaction
@@ -104,11 +110,7 @@ broker(Portfolio, Transactions) ->
             ),
 
             % Send to scribe for recording
-            scribe_proc ! {
-                ProcName,
-                {timestamp, timestamp()},
-                {transaction_data, TransactionData}
-            },
+            scribe_proc ! {transaction, TransactionData},
 
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
@@ -116,8 +118,10 @@ broker(Portfolio, Transactions) ->
             io:format("~n"),
 
             broker(NewPortfolio, NewTransactions);
+
         stop ->
             void;
+
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
             broker(Portfolio, Transactions)
@@ -140,28 +144,26 @@ scribe() ->
 %%-----------------------------------------------------------------------------
 scribe(LogFile) ->
     receive
-        {
-            ProcName,
-            {timestamp, TimeStamp},
-            {transaction_data, TransactionData}
-        } ->
+        {transaction, TransactionData} ->
 
-            {TransactionType, Symbol, Price, NumberOfShares} = TransactionData,
+            LogEntry = string:join(
+                [
+                    float_to_list(TransactionData#transaction.timestamp),
+                    atom_to_list(TransactionData#transaction.broker),
+                    atom_to_list(TransactionData#transaction.type),
+                    TransactionData#transaction.symbol,
+                    integer_to_list(TransactionData#transaction.shares),
+                    float_to_list(TransactionData#transaction.price)
+                ],
+                ?LOG_FIELD_DELIMITER
+            ),
 
-            LogEntryData = [
-                float_to_list(TimeStamp),
-                atom_to_list(ProcName),
-                atom_to_list(TransactionType),
-                Symbol,
-                integer_to_list(NumberOfShares),
-                float_to_list(Price)
-            ],
-
-            LogEntry = string:join(LogEntryData, ?LOG_FIELD_DELIMITER),
             io:format(LogFile, "~s~n", [LogEntry]),
             scribe(LogFile);
+
         stop ->
             file:close(LogFile);
+
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
             scribe(LogFile)

@@ -20,7 +20,9 @@
     ]
 ).
 
+
 -include("market_config.hrl").
+-include("market_types.hrl").
 
 
 %%-----------------------------------------------------------------------------
@@ -28,7 +30,14 @@
 %% Purpose  : Modifies portfolio dict and transactions list in accordance with
 %%            transaction data.
 %%-----------------------------------------------------------------------------
-transaction({Type, Symbol, Price, Shares}, Portfolio, PastTransactions) ->
+transaction(TransactionData, Portfolio, PastTransactions) ->
+    #transaction{
+        type=Type,
+        symbol=Symbol,
+        price=Price,
+        shares=Shares
+    } = TransactionData,
+
     NewPortfolio = dict:update(
         Symbol,
         case Type of
