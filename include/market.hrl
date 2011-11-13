@@ -1,3 +1,12 @@
+%%%----------------------------------------------------------------------------
+%%% Copyright (c) 2011 Siraaj Khandkar
+%%% Licensed under MIT license. See LICENSE file for details.
+%%%
+%%% File    : market.hrl
+%%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
+%%% Purpose : Global configuration knobs.
+%%%----------------------------------------------------------------------------
+
 -define(TICKER_INTERVAL, 100).
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
