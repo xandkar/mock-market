@@ -36,7 +36,7 @@ start() ->
     ),
 
     % Register & spawn ticker
-    register(ticker_proc, spawn(market_agents, ticker, [Listings, ?TICKER_INTERVAL])).
+    register(ticker_proc, spawn(market_agents, ticker, [Listings])).
 
 
 %%-----------------------------------------------------------------------------

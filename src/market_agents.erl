@@ -8,7 +8,7 @@
 %%%----------------------------------------------------------------------------
 
 -module(market_agents).
--export([ticker/2, broker/0, scribe/0]).
+-export([ticker/1, broker/0, scribe/0]).
 
 -include("market.hrl").
 
@@ -17,7 +17,7 @@
 %% Function : ticker/2
 %% Purpose  : Announces current prices to brokers.
 %%-----------------------------------------------------------------------------
-ticker(Listings, Interval) ->
+ticker(Listings) ->
     Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
     receive
@@ -25,8 +25,8 @@ ticker(Listings, Interval) ->
             void;
         Other ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
-            ticker(Listings, Interval)
-    after Interval ->
+            ticker(Listings)
+    after ?TICKER_INTERVAL ->
             Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
 
@@ -38,7 +38,7 @@ ticker(Listings, Interval) ->
                 Brokers
             ),
 
-            ticker(Listings, Interval)
+            ticker(Listings)
     end.
 
 
