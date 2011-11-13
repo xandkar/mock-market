@@ -9,6 +9,15 @@
 
 -module(market_agents).
 -export([ticker/0, broker/0, scribe/0]).
+-import(market_lib,
+    [
+        atoms_sequence/4,
+        choice/1,
+        random_symbol/0,
+        random_price/0,
+        transaction/3
+    ]
+).
 
 -include("market.hrl").
 
@@ -20,7 +29,7 @@
 ticker() ->
     % Generate listings
     Listings = sets:to_list(sets:from_list(
-        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
+        [random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
 
     ticker(Listings).
@@ -31,7 +40,7 @@ ticker() ->
 %% Purpose  : Announces current prices to brokers.
 %%-----------------------------------------------------------------------------
 ticker(Listings) ->
-    Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
+    Brokers = atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
     receive
         stop ->
@@ -40,7 +49,7 @@ ticker(Listings) ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
             ticker(Listings)
     after ?TICKER_INTERVAL ->
-            Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
+            Prices = [{Symbol, random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
 
             % Broadcast prices to brokers
@@ -75,9 +84,9 @@ broker(Portfolio, Transactions) ->
 
     receive
         {ticker, {prices, Prices}} ->
-            {Symbol, Price} = market_lib:choice(Prices),
-            TransactionType = market_lib:choice([buy, sell]),
-            NumberOfShares = market_lib:choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
+            {Symbol, Price} = choice(Prices),
+            TransactionType = choice([buy, sell]),
+            NumberOfShares = choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
 
             TransactionData = {
                 TransactionType,
@@ -87,7 +96,7 @@ broker(Portfolio, Transactions) ->
             },
 
             % Perform transaction
-            {NewPortfolio, NewTransactions} = market_lib:transaction(
+            {NewPortfolio, NewTransactions} = transaction(
                 TransactionData,
                 Portfolio,
                 Transactions
