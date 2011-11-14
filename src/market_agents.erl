@@ -17,7 +17,7 @@
 
 %%-----------------------------------------------------------------------------
 %% Function : ticker/0
-%% Purpose  : Generates a set of listings and starts ticker/1.
+%% Purpose  : Generates a set of listings and starts ticker/2.
 %%-----------------------------------------------------------------------------
 ticker() ->
     % Generate listings
@@ -25,23 +25,24 @@ ticker() ->
         [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
 
-    ticker(Listings).
-
-
-%%-----------------------------------------------------------------------------
-%% Function : ticker/1
-%% Purpose  : Announces current prices to brokers.
-%%-----------------------------------------------------------------------------
-ticker(Listings) ->
+    % Enumerate broker names
     Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
+    ticker(Listings, Brokers).
+
+
+%%-----------------------------------------------------------------------------
+%% Function : ticker/2
+%% Purpose  : Announces current prices to brokers.
+%%-----------------------------------------------------------------------------
+ticker(Listings, Brokers) ->
     receive
         stop ->
             void;
 
         Other ->
             io:format("WARNING! Unexpected request: ~p~n", [Other]),
-            ticker(Listings)
+            ticker(Listings, Brokers)
 
     after ?TICKER_INTERVAL ->
         Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
@@ -55,28 +56,26 @@ ticker(Listings) ->
             Brokers
         ),
 
-        ticker(Listings)
+        ticker(Listings, Brokers)
     end.
 
 
 %%-----------------------------------------------------------------------------
 %% Function : broker/0
-%% Purpose  : Initializes empty data containers and starts broker/2.
+%% Purpose  : Initializes empty data containers and starts broker/3.
 %%-----------------------------------------------------------------------------
 broker() ->
     Portfolio = dict:new(),
     CashFlow = [],
-    broker(Portfolio, CashFlow).
+    {registered_name, ProcName} = erlang:process_info(self(), registered_name),
+    broker(ProcName, Portfolio, CashFlow).
 
 
 %%-----------------------------------------------------------------------------
-%% Function : broker/2
+%% Function : broker/3
 %% Purpose  : Receives current prices and either buys or sells.
 %%-----------------------------------------------------------------------------
-broker(Portfolio, CashFlow) ->
-    {registered_name, ProcName} = erlang:process_info(self(), registered_name),
-    CashBalance = lists:sum(CashFlow),
-
+broker(ProcName, Portfolio, CashFlow) ->
     receive
         {ticker, {prices, Prices}} ->
 
@@ -111,19 +110,20 @@ broker(Portfolio, CashFlow) ->
 
             % Print accumulated values to stdout
             NewPortfolioList = dict:to_list(NewPortfolio),
+            CashBalance = lists:sum(CashFlow),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
             io:format("~n"),
 
             % Now do it all over again! :)
-            broker(NewPortfolio, NewCashFlow);
+            broker(ProcName, NewPortfolio, NewCashFlow);
 
         stop ->
             void;
 
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
-            broker(Portfolio, CashFlow)
+            broker(ProcName, Portfolio, CashFlow)
     end.
 
 
