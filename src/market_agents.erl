@@ -79,12 +79,15 @@ broker(Portfolio, CashFlow) ->
 
     receive
         {ticker, {prices, Prices}} ->
+
+            % Decide what to do
             {Symbol, Price} = market_lib:choice(Prices),
             TransactionType = market_lib:choice([buy, sell]),
             NumberOfShares = market_lib:choice(
                 lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)
             ),
 
+            % Pack transaction data
             TransactionData = #transaction{
                 timestamp = market_lib:timestamp(),
                 broker = ProcName,
@@ -94,7 +97,7 @@ broker(Portfolio, CashFlow) ->
                 price = Price
             },
 
-            % Perform transaction
+            % Update accumulated data
             {
                 {portfolio, NewPortfolio}, {cashflow, NewCashFlow}
             } = market_lib:transaction(
@@ -103,14 +106,16 @@ broker(Portfolio, CashFlow) ->
                 CashFlow
             ),
 
-            % Send to scribe for recording
+            % Log transaction to file
             scribe_proc ! {transaction, TransactionData},
 
+            % Print accumulated values to stdout
             NewPortfolioList = dict:to_list(NewPortfolio),
             io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
             io:format("~n"),
 
+            % Now do it all over again! :)
             broker(NewPortfolio, NewCashFlow);
 
         stop ->
