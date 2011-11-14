@@ -65,17 +65,17 @@ ticker(Listings) ->
 %%-----------------------------------------------------------------------------
 broker() ->
     Portfolio = dict:new(),
-    Transactions = [],
-    broker(Portfolio, Transactions).
+    CashFlow = [],
+    broker(Portfolio, CashFlow).
 
 
 %%-----------------------------------------------------------------------------
 %% Function : broker/2
 %% Purpose  : Receives current prices and either buys or sells.
 %%-----------------------------------------------------------------------------
-broker(Portfolio, Transactions) ->
+broker(Portfolio, CashFlow) ->
     {registered_name, ProcName} = erlang:process_info(self(), registered_name),
-    CashBalance = lists:sum(Transactions),
+    CashBalance = lists:sum(CashFlow),
 
     receive
         {ticker, {prices, Prices}} ->
@@ -95,10 +95,10 @@ broker(Portfolio, Transactions) ->
             },
 
             % Perform transaction
-            {NewPortfolio, NewTransactions} = market_lib:transaction(
+            {NewPortfolio, NewCashFlow} = market_lib:transaction(
                 TransactionData,
                 Portfolio,
-                Transactions
+                CashFlow
             ),
 
             % Send to scribe for recording
@@ -109,14 +109,14 @@ broker(Portfolio, Transactions) ->
             io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
             io:format("~n"),
 
-            broker(NewPortfolio, NewTransactions);
+            broker(NewPortfolio, NewCashFlow);
 
         stop ->
             void;
 
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
-            broker(Portfolio, Transactions)
+            broker(Portfolio, CashFlow)
     end.
 
 

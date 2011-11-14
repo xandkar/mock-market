@@ -27,10 +27,10 @@
 
 %%-----------------------------------------------------------------------------
 %% Function : transaction/3
-%% Purpose  : Modifies portfolio dict and transactions list in accordance with
-%%            transaction data.
+%% Purpose  : Updates portfolio dict and appends to cash flow list in
+%%            accordance with transaction data.
 %%-----------------------------------------------------------------------------
-transaction(TransactionData, Portfolio, PastTransactions) ->
+transaction(TransactionData, Portfolio, CashFlow) ->
     #transaction{
         type=Type,
         symbol=Symbol,
@@ -52,13 +52,13 @@ transaction(TransactionData, Portfolio, PastTransactions) ->
         Portfolio
     ),
 
-    NewTransactions =
+    NewCashFlow =
         case Type of
-            buy  -> [-(Price * Shares) | PastTransactions];
-            sell -> [+(Price * Shares) | PastTransactions]
+            buy  -> [-(Price * Shares) | CashFlow];
+            sell -> [+(Price * Shares) | CashFlow]
         end,
 
-    {NewPortfolio, NewTransactions}.
+    {NewPortfolio, NewCashFlow}.
 
 
 %%-----------------------------------------------------------------------------
