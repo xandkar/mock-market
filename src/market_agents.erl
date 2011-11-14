@@ -95,7 +95,9 @@ broker(Portfolio, CashFlow) ->
             },
 
             % Perform transaction
-            {NewPortfolio, NewCashFlow} = market_lib:transaction(
+            {
+                {portfolio, NewPortfolio}, {cashflow, NewCashFlow}
+            } = market_lib:transaction(
                 TransactionData,
                 Portfolio,
                 CashFlow

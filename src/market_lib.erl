@@ -58,7 +58,7 @@ transaction(TransactionData, Portfolio, CashFlow) ->
             sell -> [+(Price * Shares) | CashFlow]
         end,
 
-    {NewPortfolio, NewCashFlow}.
+    {{portfolio, NewPortfolio}, {cashflow, NewCashFlow}}.
 
 
 %%-----------------------------------------------------------------------------
