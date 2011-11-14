@@ -67,15 +67,15 @@ ticker(Listings, Brokers) ->
 broker() ->
     Portfolio = dict:new(),
     CashFlow = [],
-    {registered_name, ProcName} = erlang:process_info(self(), registered_name),
-    broker(ProcName, Portfolio, CashFlow).
+    {registered_name, Name} = erlang:process_info(self(), registered_name),
+    broker(Name, Portfolio, CashFlow).
 
 
 %%-----------------------------------------------------------------------------
 %% Function : broker/3
 %% Purpose  : Receives current prices and either buys or sells.
 %%-----------------------------------------------------------------------------
-broker(ProcName, Portfolio, CashFlow) ->
+broker(Name, Portfolio, CashFlow) ->
     receive
         {ticker, {prices, Prices}} ->
 
@@ -89,7 +89,7 @@ broker(ProcName, Portfolio, CashFlow) ->
             % Pack transaction data
             TransactionData = #transaction{
                 timestamp = market_lib:timestamp(),
-                broker = ProcName,
+                broker = Name,
                 type = TransactionType,
                 symbol = Symbol,
                 shares = NumberOfShares,
@@ -111,19 +111,19 @@ broker(ProcName, Portfolio, CashFlow) ->
             % Print accumulated values to stdout
             NewPortfolioList = dict:to_list(NewPortfolio),
             CashBalance = lists:sum(CashFlow),
-            io:format("~p PORTFOLIO:~p~n", [ProcName, NewPortfolioList]),
-            io:format("~p CASH BALANCE:~p~n", [ProcName, CashBalance]),
+            io:format("~p PORTFOLIO:~p~n", [Name, NewPortfolioList]),
+            io:format("~p CASH BALANCE:~p~n", [Name, CashBalance]),
             io:format("~n"),
 
             % Now do it all over again! :)
-            broker(ProcName, NewPortfolio, NewCashFlow);
+            broker(Name, NewPortfolio, NewCashFlow);
 
         stop ->
             void;
 
         Other ->
             io:format("WARNING! Unexpected message: ~p~n", [Other]),
-            broker(ProcName, Portfolio, CashFlow)
+            broker(Name, Portfolio, CashFlow)
     end.
 
 
