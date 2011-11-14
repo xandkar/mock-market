@@ -9,16 +9,6 @@
 
 -module(market_agents).
 -export([ticker/0, broker/0, scribe/0]).
--import(market_lib,
-    [
-        atoms_sequence/4,
-        choice/1,
-        random_symbol/0,
-        random_price/0,
-        transaction/3,
-        timestamp/0
-    ]
-).
 
 
 -include("market_config.hrl").
@@ -32,7 +22,7 @@
 ticker() ->
     % Generate listings
     Listings = sets:to_list(sets:from_list(
-        [random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
+        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
 
     ticker(Listings).
@@ -43,7 +33,7 @@ ticker() ->
 %% Purpose  : Announces current prices to brokers.
 %%-----------------------------------------------------------------------------
 ticker(Listings) ->
-    Brokers = atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
+    Brokers = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
 
     receive
         stop ->
@@ -54,7 +44,7 @@ ticker(Listings) ->
             ticker(Listings)
 
     after ?TICKER_INTERVAL ->
-            Prices = [{Symbol, random_price()} || Symbol <- Listings],
+            Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
             Message = {ticker, {prices, Prices}},
 
             % Broadcast prices to brokers
@@ -89,12 +79,12 @@ broker(Portfolio, Transactions) ->
 
     receive
         {ticker, {prices, Prices}} ->
-            {Symbol, Price} = choice(Prices),
-            TransactionType = choice([buy, sell]),
-            NumberOfShares = choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
+            {Symbol, Price} = market_lib:choice(Prices),
+            TransactionType = market_lib:choice([buy, sell]),
+            NumberOfShares = market_lib:choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
 
             TransactionData = #transaction{
-                timestamp = timestamp(),
+                timestamp = market_lib:timestamp(),
                 broker = ProcName,
                 type = TransactionType,
                 symbol = Symbol,
@@ -103,7 +93,7 @@ broker(Portfolio, Transactions) ->
             },
 
             % Perform transaction
-            {NewPortfolio, NewTransactions} = transaction(
+            {NewPortfolio, NewTransactions} = market_lib:transaction(
                 TransactionData,
                 Portfolio,
                 Transactions

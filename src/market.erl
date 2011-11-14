@@ -9,7 +9,7 @@
 
 -module(market).
 -export([start/0, stop/0]).
--import(market_lib, [atoms_sequence/4]).
+
 
 -include("market_config.hrl").
 
@@ -27,7 +27,7 @@ start() ->
         fun(BrokerName) ->
             register(BrokerName, spawn(market_agents, broker, []))
         end,
-        atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
+        market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
     ),
 
     % Register & spawn ticker
@@ -40,7 +40,7 @@ start() ->
 %%-----------------------------------------------------------------------------
 stop() ->
     Procs = [ticker_proc]
-            ++ atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
+            ++ market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS)
             ++ [scribe_proc],
 
     lists:foreach(fun(Proc) -> Proc ! stop end, Procs).
