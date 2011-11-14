@@ -7,7 +7,7 @@
 %%% Purpose : Global configuration knobs.
 %%%----------------------------------------------------------------------------
 
--define(TICKER_INTERVAL, 100).
+-define(TICKER_INTERVAL, 100).  % In milliseconds
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
 -define(MAX_SHARES_PER_TRANSACTION, 10).
