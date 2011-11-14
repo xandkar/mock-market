@@ -44,18 +44,18 @@ ticker(Listings) ->
             ticker(Listings)
 
     after ?TICKER_INTERVAL ->
-            Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
-            Message = {ticker, {prices, Prices}},
+        Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
+        Message = {ticker, {prices, Prices}},
 
-            % Broadcast prices to brokers
-            lists:foreach(
-                fun(Broker) ->
-                        Broker ! Message
-                end,
-                Brokers
-            ),
+        % Broadcast prices to brokers
+        lists:foreach(
+            fun(Broker) ->
+                    Broker ! Message
+            end,
+            Brokers
+        ),
 
-            ticker(Listings)
+        ticker(Listings)
     end.
 
 
@@ -81,7 +81,9 @@ broker(Portfolio, Transactions) ->
         {ticker, {prices, Prices}} ->
             {Symbol, Price} = market_lib:choice(Prices),
             TransactionType = market_lib:choice([buy, sell]),
-            NumberOfShares = market_lib:choice(lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)),
+            NumberOfShares = market_lib:choice(
+                lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)
+            ),
 
             TransactionData = #transaction{
                 timestamp = market_lib:timestamp(),
