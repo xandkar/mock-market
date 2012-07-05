@@ -1,5 +1,5 @@
 %%%----------------------------------------------------------------------------
-%%% Copyright (c) 2011 Siraaj Khandkar
+%%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
 %%% File    : market_types.hrl

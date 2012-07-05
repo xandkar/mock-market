@@ -1,0 +1,12 @@
+{application, mock_market,
+[
+    {description, "Simple market simulation."},
+    {vsn, "dev"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {mod, {market, []}},
+    {env, []}
+]}.
