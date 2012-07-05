@@ -12,7 +12,7 @@ chooses a listing and randomly chooses to either buy or sell a random amount of
 shares of it (accumulating a portfolio and a list of monetary transactions).
 Scribe records the details of every transaction to the log file.
 
-See *include/market_config.hrl* for configurable values.
+See *src/market_config.hrl* for configurable values.
 
 
 USAGE
@@ -25,9 +25,14 @@ Compile:
 
 Start:
 
-    market:start().
+```sh
+$ erl -pa ebin
+> application:start(mock_market).
+```
 
 
 Stop:
 
-    market:stop().
+```sh
+> application:stop(mock_market).
+```
