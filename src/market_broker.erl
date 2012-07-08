@@ -88,8 +88,7 @@ handle_info({ticker, {prices, Prices}}, {Name, Portfolio, CashFlow}) ->
         CashFlow
     ),
 
-    % Log transaction to file
-    scribe_proc ! {transaction, TransactionData},
+    market_scribe:log_transaction(TransactionData),
 
     % Print accumulated values to stdout
     NewPortfolioList = dict:to_list(NewPortfolio),

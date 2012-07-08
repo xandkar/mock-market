@@ -10,6 +10,7 @@
 -module(market).
 -behaviour(application).
 
+
 %% Application callbacks
 -export([start/2, stop/1]).
 
@@ -19,7 +20,15 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    market_sup:start_link().
+    case market_sup:start_link() of
+        {ok, Pid} ->
+            market_scribe:register_with_logger(),
+            market_scribe:add_handler(),
+            {ok, Pid};
+
+        Error ->
+            {error, Error}
+    end.
 
 
 stop(_State) ->

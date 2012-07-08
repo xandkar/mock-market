@@ -43,15 +43,15 @@ init([]) ->
     ChildrenBrokers = spec_brokers(BrokerIDs),
 
     ChildScribe = {
-        scribe_proc,
-        {market_scribe, start_link, [scribe_proc]},
-        ?RESTART, ?SHUTDOWN, ?TYPE, [market_scribe]
+        market_scribe,
+        {market_scribe, start_link, []},
+        permanent, ?SHUTDOWN, ?TYPE, [market_scribe]
     },
 
     ChildTicker = {
-        ticker_proc,
-        {market_ticker, start_link, [ticker_proc, BrokerIDs]},
-        ?RESTART, ?SHUTDOWN, ?TYPE, [market_ticker]
+        market_ticker,
+        {market_ticker, start_link, [BrokerIDs]},
+        permanent, ?SHUTDOWN, ?TYPE, [market_ticker]
     },
 
     Children = [ChildScribe, ChildTicker | ChildrenBrokers],

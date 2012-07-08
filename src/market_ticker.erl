@@ -12,7 +12,7 @@
 
 
 %% API
--export([start_link/2]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -27,8 +27,8 @@
 %% API
 %% ============================================================================
 
-start_link(Name, BrokerIDs) ->
-    gen_server:start_link({local, Name}, ?MODULE, [BrokerIDs], []).
+start_link(BrokerIDs) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [BrokerIDs], []).
 
 
 %% ============================================================================

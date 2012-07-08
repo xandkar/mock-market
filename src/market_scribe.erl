@@ -8,15 +8,25 @@
 %%%----------------------------------------------------------------------------
 
 -module(market_scribe).
--behaviour(gen_server).
+-behaviour(gen_event).
 
 
 %% API
--export([start_link/1]).
+-export([start_link/0
+        ,register_with_logger/0
+        ,add_handler/0
+        ,delete_handler/0
+        ,log_transaction/1
+        ]).
 
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
+%% Callbacks
+-export([init/1
+        ,terminate/2
+        ,code_change/3
+        ,handle_event/2
+        ,handle_call/2
+        ,handle_info/2
+        ]).
 
 
 -include("market_config.hrl").
@@ -27,8 +37,24 @@
 %% API
 %% ============================================================================
 
-start_link(Name) ->
-    gen_server:start_link({local, Name}, ?MODULE, [], []).
+start_link() ->
+    gen_event:start_link({local, ?MODULE}).
+
+
+register_with_logger() ->
+    error_logger:add_report_handler(?MODULE).
+
+
+add_handler() ->
+    gen_event:add_handler(?MODULE, ?MODULE, []).
+
+
+delete_handler() ->
+    gen_event:delete_handler(?MODULE, ?MODULE, []).
+
+
+log_transaction(Data) ->
+    gen_event:notify(?MODULE, {transaction, Data}).
 
 
 %% ============================================================================
@@ -50,32 +76,32 @@ code_change(_Old, State, _Other) ->
     {ok, State}.
 
 
-handle_call(_Msg, _From, State) ->
-    {reply, ok, State}.
+handle_call(_Request, State) ->
+    Reply = ok,
+    {ok, Reply, State}.
 
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_info(_Info, State) ->
+    {ok, State}.
 
 
-handle_info({transaction, TransactionData}, LogFile) ->
+handle_event({transaction, Data}, LogFile) ->
     LogEntry = string:join(
         [
-            float_to_list(TransactionData#transaction.timestamp),
-            atom_to_list(TransactionData#transaction.broker),
-            atom_to_list(TransactionData#transaction.type),
-            TransactionData#transaction.symbol,
-            integer_to_list(TransactionData#transaction.shares),
-            float_to_list(TransactionData#transaction.price)
+            float_to_list(Data#transaction.timestamp),
+            atom_to_list(Data#transaction.broker),
+            atom_to_list(Data#transaction.type),
+            Data#transaction.symbol,
+            integer_to_list(Data#transaction.shares),
+            float_to_list(Data#transaction.price)
         ],
         ?LOG_FIELD_DELIMITER
     ),
     io:format(LogFile, "~s~n", [LogEntry]),
-    {noreply, LogFile, hibernate};
+    {ok, LogFile};
 
-handle_info(_Msg, State) ->
-    {noreply, State}.
-
+handle_event(_Event, LogFile) ->
+    {ok, LogFile}.
 
 %% ============================================================================
 %% Internal
