@@ -37,6 +37,9 @@
 -include("market_types.hrl").
 
 
+-record(state, {log_file :: pid()}).
+
+
 %% ============================================================================
 %% API
 %% ============================================================================
@@ -72,12 +75,12 @@ log_transaction(Data) ->
 init([]) ->
     file:make_dir(?PATH_DIR__DATA),
     {ok, LogFile} = file:open(?PATH_FILE__LOG, write),
-    {ok, LogFile}.
+    {ok, #state{log_file=LogFile}}.
 
 
-terminate(_Reason, LogFile) ->
+terminate(_Reason, #state{log_file=LogFile}=State) ->
     file:close(LogFile),
-    {ok, LogFile}.
+    {ok, State}.
 
 
 code_change(_Old, State, _Other) ->
@@ -93,7 +96,7 @@ handle_info(_Info, State) ->
     {ok, State}.
 
 
-handle_event({transaction, Data}, LogFile) ->
+handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
     LogEntry = string:join(
         [
             float_to_list(Data#transaction.timestamp),
@@ -106,10 +109,11 @@ handle_event({transaction, Data}, LogFile) ->
         ?LOG_FIELD_DELIMITER
     ),
     io:format(LogFile, "~s~n", [LogEntry]),
-    {ok, LogFile};
+    {ok, State};
 
-handle_event(_Event, LogFile) ->
-    {ok, LogFile}.
+handle_event(_Event, State) ->
+    {ok, State}.
+
 
 %% ============================================================================
 %% Internal
