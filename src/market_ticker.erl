@@ -31,6 +31,13 @@
 -include("market_types.hrl").
 
 
+-record(state,
+    {listings    = [] :: list()
+    ,subscribers = [] :: list()
+    }
+).
+
+
 %% ============================================================================
 %% API
 %% ============================================================================
@@ -48,10 +55,7 @@ start_link() ->
 
 init([]) ->
     self() ! init,
-    Listings = [],
-    Subscribers = [],
-    State = {Listings, Subscribers},
-    {ok, State}.
+    {ok, #state{}}.
 
 
 terminate(_Reason, State) ->
@@ -70,18 +74,18 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info(init, {[], []}) ->
+handle_info(init, State) ->
     % Generate listings
     Listings = sets:to_list(sets:from_list(
         [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
     erlang:send_after(?TICKER_INTERVAL, self(), publish),
-    {noreply, {Listings, []}};
+    {noreply, State#state{listings=Listings}};
 
-handle_info({subscribe, PID}, {Listings, Subscribers}) ->
-    {noreply, {Listings, [PID | Subscribers]}, hibernate};
+handle_info({subscribe, PID}, #state{subscribers=Subscribers}=State) ->
+    {noreply, State#state{subscribers=[PID|Subscribers]}, hibernate};
 
-handle_info(publish, {Listings, Subscribers} = State) ->
+handle_info(publish, #state{listings=Listings, subscribers=Subscribers}=State) ->
     Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
 
     % Broadcast prices to subscribers
