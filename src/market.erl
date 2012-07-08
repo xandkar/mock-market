@@ -11,13 +11,24 @@
 -behaviour(application).
 
 
+-define(APPLICATION_NAME, mock_market).
+
+
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/0
+        ,start/2
+        ,stop/1
+        ]).
 
 
 %% ===================================================================
 %% Application callbacks
 %% ===================================================================
+
+start() ->
+    application:start(?APPLICATION_NAME),
+    ok.
+
 
 start(_StartType, _StartArgs) ->
     case market_sup:start_link() of
