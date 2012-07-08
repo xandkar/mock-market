@@ -28,6 +28,13 @@
 -include("market_types.hrl").
 
 
+-record(state, {
+     name                   :: atom()
+    ,portfolio = dict:new() :: dict()
+    ,cashflow  = []         :: list()
+}).
+
+
 %% ============================================================================
 %% API
 %% ============================================================================
@@ -45,7 +52,7 @@ start_link(Name) ->
 
 init([Name]) ->
     self() ! init,
-    {ok, {Name, [], []}}.
+    {ok, #state{name=Name}}.
 
 
 terminate(_Reason, State) ->
@@ -64,13 +71,11 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info(init, {Name, [], []}) ->
-    Portfolio = dict:new(),
-    CashFlow = [],
+handle_info(init, State) ->
     market_ticker ! {subscribe, self()},
-    {noreply, {Name, Portfolio, CashFlow}, hibernate};
+    {noreply, State, hibernate};
 
-handle_info({ticker, {prices, Prices}}, {Name, Portfolio, CashFlow}) ->
+handle_info({ticker, {prices, Prices}}, #state{name=Name}=State) ->
     % Decide what to do
     {Symbol, Price} = market_lib:choice(Prices),
     TransactionType = market_lib:choice([buy, sell]),
@@ -89,24 +94,23 @@ handle_info({ticker, {prices, Prices}}, {Name, Portfolio, CashFlow}) ->
     },
 
     % Update accumulated data
-    {
-        {portfolio, NewPortfolio}, {cashflow, NewCashFlow}
-    } = market_lib:transaction(
+    {{portfolio, Portfolio}, {cashflow, CashFlow}} = market_lib:transaction(
         TransactionData,
-        Portfolio,
-        CashFlow
+        State#state.portfolio,
+        State#state.cashflow
     ),
 
     market_scribe:log_transaction(TransactionData),
 
     % Print accumulated values to stdout
-    NewPortfolioList = dict:to_list(NewPortfolio),
-    CashBalance = lists:sum(CashFlow),
-    io:format("~p PORTFOLIO:~p~n", [Name, NewPortfolioList]),
-    io:format("~p CASH BALANCE:~p~n", [Name, CashBalance]),
+    io:format("~p PORTFOLIO:~p~n", [Name, dict:to_list(Portfolio)]),
+    io:format("~p CASH BALANCE:~p~n", [Name, lists:sum(CashFlow)]),
     io:format("~n"),
 
-    {noreply, {Name, NewPortfolio, NewCashFlow}, hibernate};
+    {noreply
+    ,#state{name=Name, portfolio=Portfolio, cashflow=CashFlow}
+    ,hibernate
+    };
 
 handle_info(_Msg, State) ->
     {noreply, State}.
