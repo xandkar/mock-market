@@ -24,6 +24,9 @@
         ]).
 
 
+-define(SERVER_NAME, ?MODULE).
+
+
 -include("market_config.hrl").
 -include("market_types.hrl").
 
@@ -33,7 +36,10 @@
 %% ============================================================================
 
 start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+    ServerName = {local, ?SERVER_NAME},
+    Args = [],
+    Opts = [],
+    gen_server:start_link(ServerName, ?MODULE, Args, Opts).
 
 
 %% ============================================================================
@@ -79,12 +85,7 @@ handle_info(publish, {Listings, Subscribers} = State) ->
     Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
 
     % Broadcast prices to subscribers
-    lists:foreach(
-        fun(Subscriber) ->
-                Subscriber ! {ticker, {prices, Prices}}
-        end,
-        Subscribers
-    ),
+    ok = send_to_all(Subscribers, {ticker, {prices, Prices}}),
 
     erlang:send_after(?TICKER_INTERVAL, self(), publish),
 
@@ -97,3 +98,7 @@ handle_info(_Msg, State) ->
 %% ============================================================================
 %% Internal
 %% ============================================================================
+send_to_all([], _) -> ok;
+send_to_all([P|Procs], Msg) ->
+    P ! Msg,
+    send_to_all(Procs, Msg).

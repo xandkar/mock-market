@@ -29,6 +29,10 @@
         ]).
 
 
+-define(EVENT_MGR_REF, ?MODULE).
+-define(HANDLER, ?MODULE).
+
+
 -include("market_config.hrl").
 -include("market_types.hrl").
 
@@ -38,23 +42,27 @@
 %% ============================================================================
 
 start_link() ->
-    gen_event:start_link({local, ?MODULE}).
+    EventMgrName = {local, ?EVENT_MGR_REF},
+    gen_event:start_link(EventMgrName).
 
 
 register_with_logger() ->
-    error_logger:add_report_handler(?MODULE).
+    error_logger:add_report_handler(?HANDLER).
 
 
 add_handler() ->
-    gen_event:add_handler(?MODULE, ?MODULE, []).
+    Args = [],
+    gen_event:add_handler(?EVENT_MGR_REF, ?HANDLER, Args).
 
 
 delete_handler() ->
-    gen_event:delete_handler(?MODULE, ?MODULE, []).
+    Args = [],
+    gen_event:delete_handler(?EVENT_MGR_REF, ?HANDLER, Args).
 
 
 log_transaction(Data) ->
-    gen_event:notify(?MODULE, {transaction, Data}).
+    Event = {transaction, Data},
+    gen_event:notify(?EVENT_MGR_REF, Event).
 
 
 %% ============================================================================
