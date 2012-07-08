@@ -19,6 +19,7 @@
 
 
 -define(SHUTDOWN, 5000).
+-define(RESTART_STRATEGY, {rest_for_one, 4, 3600}).
 
 
 -include("market_config.hrl").
@@ -46,9 +47,8 @@ init([]) ->
         permanent, ?SHUTDOWN, supervisor, [market_broker_sup]
     },
     Children = [Ticker, BrokersSup],
-    RestartStrategy = {one_for_one, 4, 3600},
 
-    {ok, {RestartStrategy, Children}}.
+    {ok, {?RESTART_STRATEGY, Children}}.
 
 
 %% ============================================================================

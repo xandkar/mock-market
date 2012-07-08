@@ -21,6 +21,7 @@
 -define(TYPE, worker).
 -define(SHUTDOWN, 5000).
 -define(RESTART, transient).
+-define(RESTART_STRATEGY, {one_for_one, 4, 3600}).
 
 
 -include("market_config.hrl").
@@ -41,8 +42,7 @@ start_link() ->
 init([]) ->
     BrokerIDs = market_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
     Children = spec_brokers(BrokerIDs),
-    RestartStrategy = {one_for_one, 4, 3600},
-    {ok, {RestartStrategy, Children}}.
+    {ok, {?RESTART_STRATEGY, Children}}.
 
 
 %% ============================================================================
