@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_sup.erl
+%%% File    : market_ticker_sup.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
-%%% Purpose : Mock Market supervisor.
+%%% Purpose : Mock Market ticker supervisor.
 %%%----------------------------------------------------------------------------
 
--module(market_sup).
+-module(market_ticker_sup).
 -behaviour(supervisor).
 
 
@@ -37,15 +37,15 @@ start_link() ->
 %% ============================================================================
 
 init([]) ->
-    Scribe = {
-        market_scribe, {market_scribe, start_link, []},
-        permanent, ?SHUTDOWN, worker, [market_scribe]
+    Ticker = {
+        market_ticker, {market_ticker, start_link, []},
+        permanent, ?SHUTDOWN, worker, [market_ticker]
     },
-    TickerSup = {
-        market_ticker_sup, {market_ticker_sup, start_link, []},
-        permanent, ?SHUTDOWN, supervisor, [market_ticker_sup]
+    BrokersSup = {
+        market_broker_sup, {market_broker_sup, start_link, []},
+        permanent, ?SHUTDOWN, supervisor, [market_broker_sup]
     },
-    Children = [Scribe, TickerSup],
+    Children = [Ticker, BrokersSup],
     RestartStrategy = {one_for_one, 4, 3600},
 
     {ok, {RestartStrategy, Children}}.

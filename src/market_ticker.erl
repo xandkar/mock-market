@@ -12,11 +12,16 @@
 
 
 %% API
--export([start_link/1]).
+-export([start_link/0]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
+-export([init/1
+        ,handle_call/3
+        ,handle_cast/2
+        ,handle_info/2
+        ,terminate/2
+        ,code_change/3
+        ]).
 
 
 -include("market_config.hrl").
@@ -27,17 +32,20 @@
 %% API
 %% ============================================================================
 
-start_link(BrokerIDs) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [BrokerIDs], []).
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 
 %% ============================================================================
 %% Callbacks
 %% ============================================================================
 
-init([BrokerIDs]) ->
+init([]) ->
     self() ! init,
-    {ok, {[], BrokerIDs}}.
+    Listings = [],
+    Subscribers = [],
+    State = {Listings, Subscribers},
+    {ok, State}.
 
 
 terminate(_Reason, State) ->
@@ -56,24 +64,26 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info(init, {[], BrokerIDs}) ->
+handle_info(init, {[], []}) ->
     % Generate listings
     Listings = sets:to_list(sets:from_list(
         [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )),
     erlang:send_after(?TICKER_INTERVAL, self(), publish),
-    {noreply, {Listings, BrokerIDs}};
+    {noreply, {Listings, []}};
 
-handle_info(publish, {Listings, BrokerIDs} = State) ->
+handle_info({subscribe, PID}, {Listings, Subscribers}) ->
+    {noreply, {Listings, [PID | Subscribers]}, hibernate};
+
+handle_info(publish, {Listings, Subscribers} = State) ->
     Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
-    Message = {ticker, {prices, Prices}},
 
-    % Broadcast prices to brokers
+    % Broadcast prices to subscribers
     lists:foreach(
-        fun(Broker) ->
-                Broker ! Message
+        fun(Subscriber) ->
+                Subscriber ! {ticker, {prices, Prices}}
         end,
-        BrokerIDs
+        Subscribers
     ),
 
     erlang:send_after(?TICKER_INTERVAL, self(), publish),

@@ -59,6 +59,7 @@ handle_cast(_Msg, State) ->
 handle_info(init, {Name, [], []}) ->
     Portfolio = dict:new(),
     CashFlow = [],
+    market_ticker ! {subscribe, self()},
     {noreply, {Name, Portfolio, CashFlow}, hibernate};
 
 handle_info({ticker, {prices, Prices}}, {Name, Portfolio, CashFlow}) ->
