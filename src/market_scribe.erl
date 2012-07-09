@@ -99,12 +99,12 @@ handle_info(_Info, State) ->
 handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
     LogEntry = string:join(
         [
-            float_to_string(Data#transaction.timestamp),
+            float_to_string(10, Data#transaction.timestamp),
             atom_to_list(Data#transaction.broker),
             atom_to_list(Data#transaction.type),
             Data#transaction.symbol,
             integer_to_list(Data#transaction.shares),
-            float_to_string(Data#transaction.price)
+            float_to_string(2, Data#transaction.price)
         ],
         ?LOG_FIELD_DELIMITER
     ),
@@ -119,5 +119,5 @@ handle_event(_Event, State) ->
 %% Internal
 %% ============================================================================
 
-float_to_string(Float) ->
-    io_lib:format("~.10f", [Float]).
+float_to_string(Precision, Float) ->
+    io_lib:format("~."++integer_to_list(Precision)++"f", [Float]).
