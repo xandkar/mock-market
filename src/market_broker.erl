@@ -103,9 +103,9 @@ handle_info({ticker, {prices, Prices}}, #state{name=Name}=State) ->
     market_scribe:log_transaction(TransactionData),
 
     % Print accumulated values to stdout
-    io:format("~p PORTFOLIO:~p~n", [Name, dict:to_list(Portfolio)]),
-    io:format("~p CASH BALANCE:~p~n", [Name, lists:sum(CashFlow)]),
-    io:format("~n"),
+    %io:format("~p PORTFOLIO:~p~n", [Name, dict:to_list(Portfolio)]),
+    %io:format("~p CASH BALANCE:~p~n", [Name, lists:sum(CashFlow)]),
+    %io:format("~n"),
 
     {noreply
     ,#state{name=Name, portfolio=Portfolio, cashflow=CashFlow}
