@@ -112,7 +112,8 @@ handle_info({ticker, {prices, Prices}}, #state{name=Name}=State) ->
     ,hibernate
     };
 
-handle_info(_Msg, State) ->
+handle_info(Msg, State) ->
+    io:format("UNEXPECTED MESSAGE:~n~p~n", [Msg]),
     {noreply, State}.
 
 
