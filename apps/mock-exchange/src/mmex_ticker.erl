@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_ticker.erl
+%%% File    : mmex_ticker.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Ticker process.
 %%%----------------------------------------------------------------------------
 
--module(market_ticker).
+-module(mmex_ticker).
 -behaviour(gen_server).
 
 
@@ -27,8 +27,8 @@
 -define(SERVER_NAME, ?MODULE).
 
 
--include("market_config.hrl").
--include("market_types.hrl").
+-include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
 -record(state,
@@ -116,9 +116,9 @@ db_ensure_table(_TableID, _TableInfo) ->
 
 generate_listings() ->
     sets:to_list(sets:from_list(
-        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
+        [mmex_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
     )).
 
 
 generate_quotes(Listings) ->
-    [{Symbol, market_lib:random_price()} || Symbol <- Listings].
+    [{Symbol, mmex_lib:random_price()} || Symbol <- Listings].

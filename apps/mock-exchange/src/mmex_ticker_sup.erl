@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_ticker_sup.erl
+%%% File    : mmex_ticker_sup.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Mock Market ticker supervisor.
 %%%----------------------------------------------------------------------------
 
--module(market_ticker_sup).
+-module(mmex_ticker_sup).
 -behaviour(supervisor).
 
 
@@ -22,7 +22,7 @@
 -define(RESTART_STRATEGY, {rest_for_one, 4, 3600}).
 
 
--include("market_config.hrl").
+-include("mmex_config.hrl").
 
 
 %% ============================================================================
@@ -39,16 +39,16 @@ start_link(LSock) ->
 
 init([LSock]) ->
     Ticker = {
-        market_ticker, {market_ticker, start_link, []},
-        permanent, ?SHUTDOWN, worker, [market_ticker]
+        mmex_ticker, {mmex_ticker, start_link, []},
+        permanent, ?SHUTDOWN, worker, [mmex_ticker]
     },
     ServerSup = {
-        market_server_sup, {market_server_sup, start_link, [LSock]},
-        permanent, ?SHUTDOWN, supervisor, [market_server_sup]
+        mmex_server_sup, {mmex_server_sup, start_link, [LSock]},
+        permanent, ?SHUTDOWN, supervisor, [mmex_server_sup]
     },
     BrokersSup = {
-        market_broker_sup, {market_broker_sup, start_link, []},
-        permanent, ?SHUTDOWN, supervisor, [market_broker_sup]
+        mmex_broker_sup, {mmex_broker_sup, start_link, []},
+        permanent, ?SHUTDOWN, supervisor, [mmex_broker_sup]
     },
     Children = [Ticker, ServerSup, BrokersSup],
 

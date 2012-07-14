@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_scribe.erl
+%%% File    : mmex_scribe.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Scribe process.
 %%%----------------------------------------------------------------------------
 
--module(market_scribe).
+-module(mmex_scribe).
 -behaviour(gen_event).
 
 
@@ -33,8 +33,8 @@
 -define(HANDLER, ?MODULE).
 
 
--include("market_config.hrl").
--include("market_types.hrl").
+-include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
 -record(state, {log_file :: pid()}).

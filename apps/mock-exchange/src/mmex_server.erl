@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_server.erl
+%%% File    : mmex_server.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : TCP interface to the exchange.
 %%%----------------------------------------------------------------------------
 
--module(market_server).
+-module(mmex_server).
 -behaviour(gen_server).
 
 
@@ -24,8 +24,8 @@
         ]).
 
 
--include("market_config.hrl").
--include("market_types.hrl").
+-include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
 -record(state, {lsock :: gen_tcp:socket()}).
@@ -64,7 +64,7 @@ handle_call(_Msg, _From, State) ->
 
 handle_cast(init, #state{lsock=LSock}=State) ->
     {ok, _Sock} = gen_tcp:accept(LSock),
-    market_server_sup:start_child(),
+    mmex_server_sup:start_child(),
     {noreply, State};
 
 handle_cast(_Msg, State) ->

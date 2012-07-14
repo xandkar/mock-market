@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_broker.erl
+%%% File    : mmex_broker.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Broker process.
 %%%----------------------------------------------------------------------------
 
--module(market_broker).
+-module(mmex_broker).
 -behaviour(gen_server).
 
 
@@ -25,11 +25,11 @@
 
 
 %% Random choice from a randomly defined list of intervals :)
--define(INTERVAL, market_lib:choice([75, 577, 975, 2671])).
+-define(INTERVAL, mmex_lib:choice([75, 577, 975, 2671])).
 
 
--include("market_config.hrl").
--include("market_types.hrl").
+-include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
 -record(state, {
@@ -106,12 +106,12 @@ get_quotes() ->
 
 choose_transaction_type() ->
     TransactionTypes = [buy, sell],
-    market_lib:choice(TransactionTypes).
+    mmex_lib:choice(TransactionTypes).
 
 
 choose_amount_of_shares() ->
     PossibleAmounts = lists:seq(1, ?MAX_SHARES_PER_TRANSACTION),
-    market_lib:choice(PossibleAmounts).
+    mmex_lib:choice(PossibleAmounts).
 
 
 schedule_next(Msg) ->
@@ -122,13 +122,13 @@ schedule_next(Msg) ->
 make_transaction(                [], _Name, P, CF) -> {P, CF};
 make_transaction([{quotes, Quotes}],  Name, P, CF) ->
     % Decide what to do
-    {Symbol, Price} = market_lib:choice(Quotes),
+    {Symbol, Price} = mmex_lib:choice(Quotes),
     TransactionType = choose_transaction_type(),
     AmountOfShares = choose_amount_of_shares(),
 
     % Pack transaction data
     TransactionData = #transaction{
-        timestamp = market_lib:timestamp(),
+        timestamp = mmex_lib:timestamp(),
         broker = Name,
         type = TransactionType,
         symbol = Symbol,
@@ -155,7 +155,7 @@ transaction(Portfolio, CashFlow, #transaction{type=Type
     UpdateFun = transaction_fun(Type, Amount),
     NewPortfolio = dict:update(Symbol, UpdateFun, InitialShares, Portfolio),
     NewCashFlow = [cash_value(Type, Amount, Price) | CashFlow],
-    market_scribe:log_transaction(TransactionData),
+    mmex_scribe:log_transaction(TransactionData),
     {NewPortfolio, NewCashFlow}.
 
 

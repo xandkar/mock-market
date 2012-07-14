@@ -2,16 +2,16 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market.erl
+%%% File    : mock_market_exchange.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Simple stock market simulation.
 %%%----------------------------------------------------------------------------
 
--module(market).
+-module(mock_market_exchange).
 -behaviour(application).
 
 
--define(APPLICATION_NAME, mock_market).
+-define(APPLICATION_NAME, mock_market_exchange).
 
 
 %% Application callbacks
@@ -32,11 +32,11 @@ start() ->
 
 start(_StartType, _StartArgs) ->
     {ok, LSock} = gen_tcp:listen(7777, [{active, true}]),
-    case market_sup:start_link(LSock) of
+    case mmex_sup:start_link(LSock) of
         {ok, Pid} ->
-            market_scribe:register_with_logger(),
-            market_scribe:add_handler(),
-            market_server_sup:start_child(),
+            mmex_scribe:register_with_logger(),
+            mmex_scribe:add_handler(),
+            mmex_server_sup:start_child(),
             {ok, Pid};
 
         Error ->

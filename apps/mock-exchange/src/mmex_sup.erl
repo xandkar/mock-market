@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_sup.erl
+%%% File    : mmex_sup.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Mock Market supervisor.
 %%%----------------------------------------------------------------------------
 
--module(market_sup).
+-module(mmex_sup).
 -behaviour(supervisor).
 
 
@@ -22,7 +22,7 @@
 -define(RESTART_STRATEGY, {rest_for_one, 4, 3600}).
 
 
--include("market_config.hrl").
+-include("mmex_config.hrl").
 
 
 %% ============================================================================
@@ -39,12 +39,12 @@ start_link(LSock) ->
 
 init([LSock]) ->
     Scribe = {
-        market_scribe, {market_scribe, start_link, []},
-        permanent, ?SHUTDOWN, worker, [market_scribe]
+        mmex_scribe, {mmex_scribe, start_link, []},
+        permanent, ?SHUTDOWN, worker, [mmex_scribe]
     },
     TickerSup = {
-        market_ticker_sup, {market_ticker_sup, start_link, [LSock]},
-        permanent, ?SHUTDOWN, supervisor, [market_ticker_sup]
+        mmex_ticker_sup, {mmex_ticker_sup, start_link, [LSock]},
+        permanent, ?SHUTDOWN, supervisor, [mmex_ticker_sup]
     },
     Children = [Scribe, TickerSup],
 

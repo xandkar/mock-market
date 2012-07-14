@@ -2,13 +2,13 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_lib.erl
+%%% File    : mmex_lib.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Collection of miscellaneous helper functions used throughout the
 %%%           simulation.
 %%%----------------------------------------------------------------------------
 
--module(market_lib).
+-module(mmex_lib).
 
 
 -export([random_symbol/0
@@ -19,8 +19,8 @@
         ]).
 
 
--include("market_config.hrl").
--include("market_types.hrl").
+-include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
 %%-----------------------------------------------------------------------------
