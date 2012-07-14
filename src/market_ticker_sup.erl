@@ -12,7 +12,7 @@
 
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -29,24 +29,28 @@
 %% API
 %% ============================================================================
 
-start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+start_link(LSock) ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [LSock]).
 
 
 %% ============================================================================
 %% Callbacks
 %% ============================================================================
 
-init([]) ->
+init([LSock]) ->
     Ticker = {
         market_ticker, {market_ticker, start_link, []},
         permanent, ?SHUTDOWN, worker, [market_ticker]
+    },
+    ServerSup = {
+        market_server_sup, {market_server_sup, start_link, [LSock]},
+        permanent, ?SHUTDOWN, supervisor, [market_server_sup]
     },
     BrokersSup = {
         market_broker_sup, {market_broker_sup, start_link, []},
         permanent, ?SHUTDOWN, supervisor, [market_broker_sup]
     },
-    Children = [Ticker, BrokersSup],
+    Children = [Ticker, ServerSup, BrokersSup],
 
     {ok, {?RESTART_STRATEGY, Children}}.
 

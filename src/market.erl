@@ -31,10 +31,12 @@ start() ->
 
 
 start(_StartType, _StartArgs) ->
-    case market_sup:start_link() of
+    {ok, LSock} = gen_tcp:listen(7777, [{active, true}]),
+    case market_sup:start_link(LSock) of
         {ok, Pid} ->
             market_scribe:register_with_logger(),
             market_scribe:add_handler(),
+            market_server_sup:start_child(),
             {ok, Pid};
 
         Error ->

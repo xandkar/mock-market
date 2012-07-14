@@ -2,24 +2,27 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : market_sup.erl
+%%% File    : market_server_sup.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
-%%% Purpose : Mock Market supervisor.
+%%% Purpose : Mock Market server supervisor.
 %%%----------------------------------------------------------------------------
 
--module(market_sup).
+-module(market_server_sup).
 -behaviour(supervisor).
 
 
 %% API
--export([start_link/1]).
+-export([start_link/1
+        ,start_child/0
+        ]).
 
-%% Supervisor callbacks
+%% Callbacks
 -export([init/1]).
 
 
--define(SHUTDOWN, 5000).
--define(RESTART_STRATEGY, {rest_for_one, 4, 3600}).
+-define(SUP_REF, ?MODULE).
+-define(SHUTDOWN, brutal_kill).
+-define(RESTART_STRATEGY, {simple_one_for_one, 5, 1}).
 
 
 -include("market_config.hrl").
@@ -30,7 +33,11 @@
 %% ============================================================================
 
 start_link(LSock) ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, [LSock]).
+    supervisor:start_link({local, ?SUP_REF}, ?MODULE, [LSock]).
+
+
+start_child() ->
+    supervisor:start_child(?SUP_REF, []).
 
 
 %% ============================================================================
@@ -38,15 +45,12 @@ start_link(LSock) ->
 %% ============================================================================
 
 init([LSock]) ->
-    Scribe = {
-        market_scribe, {market_scribe, start_link, []},
-        permanent, ?SHUTDOWN, worker, [market_scribe]
+    Server = {
+        market_server, {market_server, start_link, [LSock]},
+        transient, ?SHUTDOWN, worker, [market_server]
     },
-    TickerSup = {
-        market_ticker_sup, {market_ticker_sup, start_link, [LSock]},
-        permanent, ?SHUTDOWN, supervisor, [market_ticker_sup]
-    },
-    Children = [Scribe, TickerSup],
+
+    Children = [Server],
 
     {ok, {?RESTART_STRATEGY, Children}}.
 
