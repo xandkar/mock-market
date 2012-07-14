@@ -88,6 +88,6 @@ handle_info(_Msg, State) ->
 %% ============================================================================
 
 handle_data(Socket, _Data) ->
-    [Prices] = ets:lookup(?TICKER_TABLE_ID, prices),
-    Reply = term_to_binary(Prices),
+    Quotes = ets:lookup(?TICKER_TABLE_ID, quotes),
+    Reply = term_to_binary(Quotes),
     gen_tcp:send(Socket, Reply).

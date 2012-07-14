@@ -111,7 +111,32 @@ handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
     io:format(LogFile, "~s~n", [LogEntry]),
     {ok, State};
 
-handle_event(_Event, State) ->
+handle_event({error, _Gleader, Info}, State) ->
+    io:format(">>> ERROR:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event({error_report, _Gleader, Info}, State) ->
+    io:format(">>> ERROR REPORT:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event({warning_msg, _Gleader, Info}, State) ->
+    io:format(">>> WARNING MSG:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event({warning_report, _Gleader, Info}, State) ->
+    io:format(">>> WARNING REPORT:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event({info_msg, _Gleader, _Info}, State) ->
+    %io:format(">>> INFO MSG:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event({info_report, _Gleader, _Info}, State) ->
+    %io:format(">>> INFO REPORT:~n~p~n", [Info]),
+    {ok, State};
+
+handle_event(Event, State) ->
+    io:format(">>> EVENT:~n~p~n", [Event]),
     {ok, State}.
 
 

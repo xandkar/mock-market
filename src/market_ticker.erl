@@ -75,33 +75,13 @@ handle_cast(_Msg, State) ->
 
 
 handle_info(init, State) ->
-    % Generate listings
-    Listings = sets:to_list(sets:from_list(
-        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
-    )),
-
-    % Ensure DB table
     ok = db_ensure_table(),
+    schedule_next(publish),
+    {noreply, State#state{listings=generate_listings()}};
 
-    % Schedule next publish event
-    erlang:send_after(?TICKER_INTERVAL, self(), publish),
-
-    {noreply, State#state{listings=Listings}};
-
-handle_info({subscribe, PID}, #state{subscribers=Subscribers}=State) ->
-    {noreply, State#state{subscribers=[PID|Subscribers]}, hibernate};
-
-handle_info(publish, #state{listings=Listings, subscribers=Subscribers}=State) ->
-    Prices = [{Symbol, market_lib:random_price()} || Symbol <- Listings],
-
-    % Update DB
-    ok = db_update(prices, Prices),
-
-    % Broadcast prices to subscribers
-    ok = send_to_all(Subscribers, {ticker, {prices, Prices}}),
-
-    erlang:send_after(?TICKER_INTERVAL, self(), publish),
-
+handle_info(publish, #state{listings=Listings}=State) ->
+    ok = db_update(quotes, generate_quotes(Listings)),
+    schedule_next(publish),
     {noreply, State, hibernate};
 
 handle_info(_Msg, State) ->
@@ -112,14 +92,12 @@ handle_info(_Msg, State) ->
 %% Internal
 %% ============================================================================
 
-send_to_all([], _) -> ok;
-send_to_all([P|Procs], Msg) ->
-    P ! Msg,
-    send_to_all(Procs, Msg).
+schedule_next(Msg) ->
+    erlang:send_after(?TICKER_INTERVAL, self(), Msg).
 
 
-db_update(prices, Prices) ->
-    true = ets:insert(?TICKER_TABLE_ID, {prices, Prices}),
+db_update(quotes, Quotes) ->
+    true = ets:insert(?TICKER_TABLE_ID, {quotes, Quotes}),
     ok.
 
 
@@ -132,5 +110,15 @@ db_ensure_table(TableID, undefined) ->
     TableID = ets:new(TableID, Options),
     ok;
 
-db_ensure_table(_TableID, _Info) ->
+db_ensure_table(_TableID, _TableInfo) ->
     ok.
+
+
+generate_listings() ->
+    sets:to_list(sets:from_list(
+        [market_lib:random_symbol() || _ <- lists:seq(1, ?NUM_LISTINGS)]
+    )).
+
+
+generate_quotes(Listings) ->
+    [{Symbol, market_lib:random_price()} || Symbol <- Listings].
