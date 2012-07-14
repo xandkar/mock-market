@@ -103,7 +103,7 @@ handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
             atom_to_list(Data#transaction.broker),
             atom_to_list(Data#transaction.type),
             Data#transaction.symbol,
-            integer_to_list(Data#transaction.shares),
+            integer_to_list(Data#transaction.amount),
             float_to_string(2, Data#transaction.price)
         ],
         ?LOG_FIELD_DELIMITER

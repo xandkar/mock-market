@@ -9,56 +9,18 @@
 %%%----------------------------------------------------------------------------
 
 -module(market_lib).
--export(
-    [
-        transaction/3,
-        random_symbol/0,
-        random_price/0,
-        choice/1,
-        atoms_sequence/4,
-        timestamp/0
-    ]
-).
+
+
+-export([random_symbol/0
+        ,random_price/0
+        ,choice/1
+        ,atoms_sequence/4
+        ,timestamp/0
+        ]).
 
 
 -include("market_config.hrl").
 -include("market_types.hrl").
-
-
-%%-----------------------------------------------------------------------------
-%% Function : transaction/3
-%% Purpose  : Updates portfolio dict and appends to cash flow list in
-%%            accordance with transaction data.
-%%-----------------------------------------------------------------------------
-transaction(TransactionData, Portfolio, CashFlow) ->
-    #transaction{
-        type=Type,
-        symbol=Symbol,
-        price=Price,
-        shares=Shares
-    } = TransactionData,
-
-    NewPortfolio = dict:update(
-        Symbol,
-        case Type of
-            buy  -> fun(CurrentShares) -> CurrentShares + Shares end;
-            sell -> fun(CurrentShares) -> CurrentShares - Shares end
-        end,
-        _InitialShares =
-            case Type of
-                buy  -> + Shares;
-                sell -> - Shares
-            end,
-        Portfolio
-    ),
-
-    NewCashFlow =
-        case Type of
-            buy  -> [-(Price * Shares) | CashFlow];
-            sell -> [+(Price * Shares) | CashFlow]
-        end,
-
-    {{portfolio, NewPortfolio}, {cashflow, NewCashFlow}}.
 
 
 %%-----------------------------------------------------------------------------

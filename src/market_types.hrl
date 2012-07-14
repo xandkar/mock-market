@@ -7,4 +7,10 @@
 %%% Purpose : Data types/structures definitions.
 %%%----------------------------------------------------------------------------
 
--record(transaction, {timestamp, broker, type, symbol, shares, price}).
+-record(transaction, {timestamp :: float()
+                     ,broker    :: atom()
+                     ,type      :: atom()
+                     ,symbol    :: string()
+                     ,amount    :: integer()
+                     ,price     :: float()
+                     }).

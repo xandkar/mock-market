@@ -75,42 +75,29 @@ handle_info(init, State) ->
     market_ticker ! {subscribe, self()},
     {noreply, State, hibernate};
 
-handle_info({ticker, {prices, Prices}}, #state{name=Name}=State) ->
+handle_info({ticker, {prices, Prices}}, State) ->
     % Decide what to do
     {Symbol, Price} = market_lib:choice(Prices),
-    TransactionType = market_lib:choice([buy, sell]),
-    NumberOfShares = market_lib:choice(
-        lists:seq(1, ?MAX_SHARES_PER_TRANSACTION)
-    ),
+    TransactionType = choose_transaction_type(),
+    AmountOfShares = choose_amount_of_shares(),
 
     % Pack transaction data
     TransactionData = #transaction{
         timestamp = market_lib:timestamp(),
-        broker = Name,
+        broker = State#state.name,
         type = TransactionType,
         symbol = Symbol,
-        shares = NumberOfShares,
+        amount = AmountOfShares,
         price = Price
     },
 
     % Update accumulated data
-    {{portfolio, Portfolio}, {cashflow, CashFlow}} = market_lib:transaction(
-        TransactionData,
-        State#state.portfolio,
-        State#state.cashflow
-    ),
-
+    P = State#state.portfolio,
+    C = State#state.cashflow,
+    {Portfolio, CashFlow} = transaction(P, C, TransactionData),
     market_scribe:log_transaction(TransactionData),
 
-    % Print accumulated values to stdout
-    %io:format("~p PORTFOLIO:~p~n", [Name, dict:to_list(Portfolio)]),
-    %io:format("~p CASH BALANCE:~p~n", [Name, lists:sum(CashFlow)]),
-    %io:format("~n"),
-
-    {noreply
-    ,#state{name=Name, portfolio=Portfolio, cashflow=CashFlow}
-    ,hibernate
-    };
+    {noreply, State#state{portfolio=Portfolio, cashflow=CashFlow}, hibernate};
 
 handle_info(Msg, State) ->
     io:format("UNEXPECTED MESSAGE:~n~p~n", [Msg]),
@@ -120,3 +107,38 @@ handle_info(Msg, State) ->
 %% ============================================================================
 %% Internal
 %% ============================================================================
+
+choose_transaction_type() ->
+    TransactionTypes = [buy, sell],
+    market_lib:choice(TransactionTypes).
+
+
+choose_amount_of_shares() ->
+    PossibleAmounts = lists:seq(1, ?MAX_SHARES_PER_TRANSACTION),
+    market_lib:choice(PossibleAmounts).
+
+
+%%-----------------------------------------------------------------------------
+%% Function : transaction/3
+%% Purpose  : Updates portfolio dict and appends to cash flow list in
+%%            accordance with transaction data.
+%%-----------------------------------------------------------------------------
+transaction(Portfolio, CashFlow, #transaction{type=Type
+                                             ,symbol=Symbol
+                                             ,price=Price
+                                             ,amount=Amount
+                                             }) ->
+    InitialShares = 0,
+    UpdateFun = transaction_fun(Type, Amount),
+    NewPortfolio = dict:update(Symbol, UpdateFun, InitialShares, Portfolio),
+    NewCashFlow = [cash_value(Type, Amount, Price) | CashFlow],
+
+    {NewPortfolio, NewCashFlow}.
+
+
+transaction_fun(buy,  NewAmount) -> fun(Current) -> Current + NewAmount end;
+transaction_fun(sell, NewAmount) -> fun(Current) -> Current - NewAmount end.
+
+
+cash_value(buy,  Amount, Price) -> -(Amount * Price);
+cash_value(sell, Amount, Price) -> +(Amount * Price).
