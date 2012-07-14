@@ -87,6 +87,7 @@ handle_info(_Msg, State) ->
 %% Internal
 %% ============================================================================
 
-handle_data(Socket, Data) ->
-    Reply = ["ECHO: ", Data],
+handle_data(Socket, _Data) ->
+    [Prices] = ets:lookup(?TICKER_TABLE_ID, prices),
+    Reply = term_to_binary(Prices),
     gen_tcp:send(Socket, Reply).

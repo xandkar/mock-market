@@ -7,6 +7,7 @@
 %%% Purpose : Global configuration knobs.
 %%%----------------------------------------------------------------------------
 
+-define(TICKER_TABLE_ID, ticker).
 -define(TICKER_INTERVAL, 100).  % In milliseconds
 -define(NUM_LISTINGS, 5).
 -define(NUM_BROKERS, 3).
