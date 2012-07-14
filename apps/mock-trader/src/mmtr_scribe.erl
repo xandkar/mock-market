@@ -34,9 +34,10 @@
 
 
 -include("mmex_config.hrl").
+-include("mmex_types.hrl").
 
 
--record(state, {}).
+-record(state, {log_file :: pid()}).
 
 
 %% ============================================================================
@@ -72,10 +73,13 @@ log_transaction(Data) ->
 %% ============================================================================
 
 init([]) ->
-    {ok, #state{}}.
+    file:make_dir(?PATH_DIR__DATA),
+    {ok, LogFile} = file:open(?PATH_FILE__LOG, write),
+    {ok, #state{log_file=LogFile}}.
 
 
-terminate(_Reason, State) ->
+terminate(_Reason, #state{log_file=LogFile}=State) ->
+    file:close(LogFile),
     {ok, State}.
 
 
@@ -91,6 +95,21 @@ handle_call(_Request, State) ->
 handle_info(_Info, State) ->
     {ok, State}.
 
+
+handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
+    LogEntry = string:join(
+        [
+            float_to_string(10, Data#transaction.timestamp),
+            atom_to_list(Data#transaction.broker),
+            atom_to_list(Data#transaction.type),
+            Data#transaction.symbol,
+            integer_to_list(Data#transaction.amount),
+            float_to_string(2, Data#transaction.price)
+        ],
+        ?LOG_FIELD_DELIMITER
+    ),
+    io:format(LogFile, "~s~n", [LogEntry]),
+    {ok, State};
 
 handle_event({error, _Gleader, Info}, State) ->
     io:format(">>> ERROR:~n~p~n", [Info]),
@@ -124,3 +143,6 @@ handle_event(Event, State) ->
 %% ============================================================================
 %% Internal
 %% ============================================================================
+
+float_to_string(Precision, Float) ->
+    io_lib:format("~."++integer_to_list(Precision)++"f", [Float]).

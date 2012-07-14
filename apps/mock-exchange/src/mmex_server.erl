@@ -25,7 +25,6 @@
 
 
 -include("mmex_config.hrl").
--include("mmex_types.hrl").
 
 
 -record(state, {lsock :: gen_tcp:socket()}).

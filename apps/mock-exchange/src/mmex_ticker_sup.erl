@@ -46,11 +46,7 @@ init([LSock]) ->
         mmex_server_sup, {mmex_server_sup, start_link, [LSock]},
         permanent, ?SHUTDOWN, supervisor, [mmex_server_sup]
     },
-    BrokersSup = {
-        mmex_broker_sup, {mmex_broker_sup, start_link, []},
-        permanent, ?SHUTDOWN, supervisor, [mmex_broker_sup]
-    },
-    Children = [Ticker, ServerSup, BrokersSup],
+    Children = [Ticker, ServerSup],
 
     {ok, {?RESTART_STRATEGY, Children}}.
 
