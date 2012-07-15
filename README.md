@@ -61,5 +61,5 @@ $ tail -f ./data/transactions.dat
 Examples
 --------
 
-![Terminal](screenshot-terminal.png)
-![AppMon](screenshot-appmon.png)
+![Terminal](https://github.com/ibnfirnas/mock-market/raw/master/screenshot-terminal.png)
+![AppMon](https://github.com/ibnfirnas/mock-market/raw/master/screenshot-appmon.png)
