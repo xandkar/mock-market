@@ -2,5 +2,5 @@
 
 
 erl \
-    -pa apps/mock-exchange/ebin \
+    -pa apps/mock_market_exchange/ebin \
     -s mock_market_exchange start
