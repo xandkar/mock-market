@@ -2,13 +2,13 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : mmex_lib.erl
+%%% File    : mmtr_lib.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Collection of miscellaneous helper functions used throughout the
 %%%           simulation.
 %%%----------------------------------------------------------------------------
 
--module(mmex_lib).
+-module(mmtr_lib).
 
 
 -export([random_symbol/0
@@ -19,8 +19,8 @@
         ]).
 
 
--include("mmex_config.hrl").
--include("mmex_types.hrl").
+-include("mmtr_config.hrl").
+-include("mmtr_types.hrl").
 
 
 %%-----------------------------------------------------------------------------

@@ -1,0 +1,12 @@
+{application, mock_market_trader,
+[
+    {description, "Mock Market Trader app."},
+    {vsn, "dev"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {mod, {mock_market_trader, []}},
+    {env, []}
+]}.

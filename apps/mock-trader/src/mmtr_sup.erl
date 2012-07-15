@@ -2,29 +2,29 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : mmex_broker_sup.erl
+%%% File    : mmtr_sup.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
-%%% Purpose : Mock Market brokers supervisor.
+%%% Purpose : Mock Market Trader supervisor.
 %%%----------------------------------------------------------------------------
 
--module(mmex_broker_sup).
+-module(mmtr_sup).
 -behaviour(supervisor).
 
 
 %% API
 -export([start_link/0]).
 
-%% Supervisor callbacks
+%% Callbacks
 -export([init/1]).
 
 
 -define(TYPE, worker).
 -define(SHUTDOWN, 5000).
--define(RESTART, transient).
+-define(RESTART, permanent).
 -define(RESTART_STRATEGY, {one_for_one, 4, 3600}).
 
 
--include("mmex_config.hrl").
+-include("mmtr_config.hrl").
 
 
 %% ============================================================================
@@ -40,8 +40,15 @@ start_link() ->
 %% ============================================================================
 
 init([]) ->
-    BrokerIDs = mmex_lib:atoms_sequence("broker", "_", 1, ?NUM_BROKERS),
-    Children = spec_brokers(BrokerIDs),
+    Scribe = {
+        mmtr_scribe, {mmtr_scribe, start_link, []},
+        permanent, ?SHUTDOWN, worker, [mmtr_scribe]
+    },
+
+    AgentIDs = mmtr_lib:atoms_sequence("agent", "_", 1, ?NUM_AGENTS),
+    Agents = spec_agents(AgentIDs),
+
+    Children = [Scribe | Agents],
     {ok, {?RESTART_STRATEGY, Children}}.
 
 
@@ -49,12 +56,12 @@ init([]) ->
 %% Internal
 %% ============================================================================
 
-spec_brokers(IDs) -> spec_brokers(IDs, []).
+spec_agents(IDs) -> spec_agents(IDs, []).
 
-spec_brokers([], Specs) -> Specs;
-spec_brokers([ID | IDs], Specs) ->
-    M = mmex_broker,
+spec_agents([], Specs) -> Specs;
+spec_agents([ID | IDs], Specs) ->
+    M = mmtr_agent,
     F = start_link,
     A = [ID],
     Spec = {ID, {M, F, A}, ?RESTART, ?SHUTDOWN, ?TYPE, [M]},
-    spec_brokers(IDs, [Spec | Specs]).
+    spec_agents(IDs, [Spec | Specs]).

@@ -2,19 +2,19 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : mmex_broker.erl
+%%% File    : mmtr_agent.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
-%%% Purpose : Broker process.
+%%% Purpose : Agent process.
 %%%----------------------------------------------------------------------------
 
--module(mmex_broker).
+-module(mmtr_agent).
 -behaviour(gen_server).
 
 
 %% API
 -export([start_link/1]).
 
-%% gen_server callbacks
+%% Callbacks
 -export([init/1
         ,handle_call/3
         ,handle_cast/2
@@ -25,18 +25,17 @@
 
 
 %% Random choice from a randomly defined list of intervals :)
--define(INTERVAL, mmex_lib:choice([75, 577, 975, 2671])).
+-define(INTERVAL, mmtr_lib:choice([75, 577, 975, 2671])).
 
 
--include("mmex_config.hrl").
--include("mmex_types.hrl").
+-include("mmtr_config.hrl").
+-include("mmtr_types.hrl").
 
 
--record(state, {
-     name                   :: atom()
-    ,portfolio = dict:new() :: dict()
-    ,cashflow  = []         :: list()
-}).
+-record(state, {name                   :: atom()
+               ,portfolio = dict:new() :: dict()
+               ,cashflow  = []         :: list()
+               }).
 
 
 %% ============================================================================
@@ -106,12 +105,12 @@ get_quotes() ->
 
 choose_transaction_type() ->
     TransactionTypes = [buy, sell],
-    mmex_lib:choice(TransactionTypes).
+    mmtr_lib:choice(TransactionTypes).
 
 
 choose_amount_of_shares() ->
     PossibleAmounts = lists:seq(1, ?MAX_SHARES_PER_TRANSACTION),
-    mmex_lib:choice(PossibleAmounts).
+    mmtr_lib:choice(PossibleAmounts).
 
 
 schedule_next(Msg) ->
@@ -122,14 +121,14 @@ schedule_next(Msg) ->
 make_transaction(                [], _Name, P, CF) -> {P, CF};
 make_transaction([{quotes, Quotes}],  Name, P, CF) ->
     % Decide what to do
-    {Symbol, Price} = mmex_lib:choice(Quotes),
+    {Symbol, Price} = mmtr_lib:choice(Quotes),
     TransactionType = choose_transaction_type(),
     AmountOfShares = choose_amount_of_shares(),
 
     % Pack transaction data
     TransactionData = #transaction{
-        timestamp = mmex_lib:timestamp(),
-        broker = Name,
+        timestamp = mmtr_lib:timestamp(),
+        agent = Name,
         type = TransactionType,
         symbol = Symbol,
         amount = AmountOfShares,
@@ -155,7 +154,7 @@ transaction(Portfolio, CashFlow, #transaction{type=Type
     UpdateFun = transaction_fun(Type, Amount),
     NewPortfolio = dict:update(Symbol, UpdateFun, InitialShares, Portfolio),
     NewCashFlow = [cash_value(Type, Amount, Price) | CashFlow],
-    mmex_scribe:log_transaction(TransactionData),
+    mmtr_scribe:log_transaction(TransactionData),
     {NewPortfolio, NewCashFlow}.
 
 

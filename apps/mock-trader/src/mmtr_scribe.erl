@@ -2,12 +2,12 @@
 %%% Copyright (c) 2011-2012 Siraaj Khandkar
 %%% Licensed under MIT license. See LICENSE file for details.
 %%%
-%%% File    : mmex_scribe.erl
+%%% File    : mmtr_scribe.erl
 %%% Author  : Siraaj Khandkar <siraaj@khandkar.net>
 %%% Purpose : Scribe process.
 %%%----------------------------------------------------------------------------
 
--module(mmex_scribe).
+-module(mmtr_scribe).
 -behaviour(gen_event).
 
 
@@ -33,11 +33,11 @@
 -define(HANDLER, ?MODULE).
 
 
--include("mmex_config.hrl").
--include("mmex_types.hrl").
+-include("mmtr_config.hrl").
+-include("mmtr_types.hrl").
 
 
--record(state, {log_file :: pid()}).
+-record(state, {log_file :: file:io_device()}).
 
 
 %% ============================================================================
@@ -100,7 +100,7 @@ handle_event({transaction, Data}, #state{log_file=LogFile}=State) ->
     LogEntry = string:join(
         [
             float_to_string(10, Data#transaction.timestamp),
-            atom_to_list(Data#transaction.broker),
+            atom_to_list(Data#transaction.agent),
             atom_to_list(Data#transaction.type),
             Data#transaction.symbol,
             integer_to_list(Data#transaction.amount),

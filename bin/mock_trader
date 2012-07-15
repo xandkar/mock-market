@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+erl \
+    -pa apps/mock-trader/ebin \
+    -s mock_market_trader start
