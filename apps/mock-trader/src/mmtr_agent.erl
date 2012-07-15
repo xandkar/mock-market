@@ -35,6 +35,7 @@
 -record(state, {name                   :: atom()
                ,portfolio = dict:new() :: dict()
                ,cashflow  = []         :: list()
+               ,ticker_sock            :: gen_tcp:socket()
                }).
 
 
@@ -59,6 +60,7 @@ init([Name]) ->
 
 
 terminate(_Reason, State) ->
+    gen_tcp:close(State#state.ticker_sock),
     {ok, State}.
 
 
@@ -75,13 +77,15 @@ handle_cast(_Msg, State) ->
 
 
 handle_info(init, State) ->
+    {ok, Sock} = gen_tcp:connect("localhost", 7777, [binary]),
     schedule_next(get_quotes),
-    {noreply, State, hibernate};
+    {noreply, State#state{ticker_sock=Sock}, hibernate};
 
-handle_info(get_quotes, #state{name=N, portfolio=P, cashflow=CF}=State) ->
-    {Portfolio, CashFlow} = make_transaction(get_quotes(), N, P, CF),
+handle_info(get_quotes, #state{name=N, portfolio=P, cashflow=CF}=S) ->
+    Quotes = get_quotes(S#state.ticker_sock),
+    {Portfolio, CashFlow} = make_transaction(Quotes, N, P, CF),
     schedule_next(get_quotes),
-    {noreply, State#state{portfolio=Portfolio, cashflow=CashFlow}, hibernate};
+    {noreply, S#state{portfolio=Portfolio, cashflow=CashFlow}, hibernate};
 
 handle_info(Msg, State) ->
     io:format("UNEXPECTED MESSAGE:~n~p~n", [Msg]),
@@ -92,14 +96,10 @@ handle_info(Msg, State) ->
 %% Internal
 %% ============================================================================
 
-get_quotes() ->
-    {ok, Sock} = gen_tcp:connect("localhost", 7777, [binary]),
-    Msg = "\n",
-    ok = gen_tcp:send(Sock, Msg),
+get_quotes(Sock) ->
+    ok = gen_tcp:send(Sock, "\n"),
     receive
-        {tcp, Sock, Data} ->
-            ok = gen_tcp:close(Sock),
-            binary_to_term(Data)
+        {tcp, Sock, Data} -> binary_to_term(Data)
     end.
 
 
