@@ -2,5 +2,6 @@
 
 
 erl \
+    -name trader@mock-market \
     -pa apps/mock_market_trader/ebin \
     -s mock_market_trader start
