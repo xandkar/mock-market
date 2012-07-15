@@ -4,7 +4,6 @@ Mock Market
 
 Description
 -----------
-
 A simple market sim. The main point is to build a playground for me to
 experiment with and learn about various concepts and technologies (OTP,
 high-traffic servers, monitoring, various protocols and eventually crawling,
@@ -12,6 +11,11 @@ web mining, AI, NLP and ML). For now, just playing with an infrastructure,
 while all events are random, eventually "mock_market_exchange" will facilitate
 trading competition between competing trading agents. Once protocol is
 designed, any implementation should be able join the trading competition.
+
+### Disclaimer ###
+I don't actually know anything (nor much care) about the problem domain, it
+just seems like a convenient, simple paradigm to employ and orchestrate a lot
+of technology and concepts that I'm interested in :)
 
 
 Road Map
@@ -30,7 +34,6 @@ Road Map
 
 Usage
 -----
-
 See `apps/*/src/*_config.hrl` for configurable values.
 
 Compile:
@@ -60,6 +63,5 @@ $ tail -f ./data/transactions.dat
 
 Examples
 --------
-
 ![Terminal](https://github.com/ibnfirnas/mock-market/raw/master/screenshot-terminal.png)
 ![AppMon](https://github.com/ibnfirnas/mock-market/raw/master/screenshot-appmon.png)
