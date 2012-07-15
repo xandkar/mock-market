@@ -1,38 +1,65 @@
-# Mock Market #
-
-
-DESCRIPTION
+Mock Market
 ===========
 
-An attempt at a very simple stock market simulation.
 
-Generates a set of random listings, then ticker sets a random price for each
-listing every interval and announces it to the brokers. Each broker randomly
-chooses a listing and randomly chooses to either buy or sell a random amount of
-shares of it (accumulating a portfolio and a list of monetary transactions).
-Scribe records the details of every transaction to the log file.
+Description
+-----------
 
-See *src/market_config.hrl* for configurable values.
+A simple market sim. The main point is to build a playground for me to
+experiment with and learn about various concepts and technologies (OTP,
+high-traffic servers, monitoring, various protocols and eventually crawling,
+web mining, AI, NLP and ML). For now, just playing with an infrastructure,
+while all events are random, eventually "mock_market_exchange" will facilitate
+trading competition between competing trading agents. Once protocol is
+designed, any implementation should be able join the trading competition.
 
 
-USAGE
-=====
+Road Map
+--------
+* More elaborate communication protocol
+* Actual trading between agents with finite amounts of starting capital
+* Mock Bank app to store and manipulate capital information
+* More elaborate data logging
+* Data visualisation
+* Secure communication channel(s) (SSH, SSL)
+* RESTful interface
+* Agents choose between available com channels (TCP binary, SSH binary, HTTPS)
+* Smarter trading choices
+* Front-end web interfaces
+
+
+Usage
+-----
+
+See `apps/*/src/*_config.hrl` for configurable values.
 
 Compile:
 
-    make
+```sh
+make
+```
 
-
-Start:
+Start Exchange:
 
 ```sh
-$ erl -pa ebin
-> application:start(mock_market).
+$ ./bin/mock_exchange
+```
+
+Start Trader:
+
+```sh
+$ ./bin/mock_exchange
+```
+
+Watch trade log:
+
+```sh
+$ tail -f ./data/transactions.dat
 ```
 
 
-Stop:
+Examples
+--------
 
-```sh
-> application:stop(mock_market).
-```
+![Terminal](screenshot-terminal.png)
+![AppMon](screenshot-appmon.png)
