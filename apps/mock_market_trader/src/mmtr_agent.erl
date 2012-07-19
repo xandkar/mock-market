@@ -91,13 +91,13 @@ handle_info(receive_data, #state{name=Name
                                 ,ticker_sock=Sock
                                 }=S) ->
     Data = receive_data(Sock),
-    Msgs = [parse_mix_msg(M) || M <- split(Data, "\n+")],
-    Quotes = [M || #quote{}=M <- Msgs],
+    MsgsProps = [mixmsg_to_props(Msg) || Msg <- split(Data, "\n+")],
+    MsgsRecs = [mixprops_to_record(MP) || MP <- MsgsProps],
+    Quotes = [M || #quote{}=M <- MsgsRecs],
 
     {Portfolio, CashFlow} = make_transaction(Quotes, Name, P, CF),
     schedule_next(receive_data),
     {noreply, S#state{portfolio=Portfolio, cashflow=CashFlow}, hibernate};
-    %{noreply, State, hibernate};
 
 handle_info(Msg, State) ->
     io:format("UNEXPECTED MESSAGE:~n~p~n", [Msg]),
@@ -115,11 +115,15 @@ receive_data(Sock) ->
     end.
 
 
-parse_mix_msg(Msg) ->
+mixmsg_to_props(Msg) ->
     Fields = split(Msg, "\\|"),
     Tokens = [split(F, "=", to_lists) || F <- Fields],
     Props = [{K, V} || [K, V] <- Tokens],
-    case proplists:get_value("msg_type", Props) of
+    Props.
+
+
+mixprops_to_record(Props) ->
+    case proplists:get_value("type", Props) of
         "quote" ->
             #quote{
                 symbol=proplists:get_value("symbol", Props),

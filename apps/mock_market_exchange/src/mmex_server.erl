@@ -96,10 +96,26 @@ quotes_to_mixmsgs([{quotes, Quotes}]) ->
     string:join([quote_to_mixmsg(Q) || Q <- Quotes], "\n").
 
 
+quote_to_mixmsg(Q) ->
+    proplist_to_mixmsg("quote", quote_to_proplist(Q)).
+
+
+quote_to_proplist({S, P}) ->
+    [{symbol, S}, {price, P}].
+
+
+proplist_to_mixmsg(Type, Props) ->
+    MIXType = "type"++"="++Type,
+    MIXProps = [term_to_list(K)++"="++term_to_list(V) || {K, V} <- Props],
+    MIXMsg = string:join([MIXType | MIXProps], "|"),
+    MIXMsg.
+
+
+term_to_list(T) when is_list(T) -> T;
+term_to_list(T) when is_atom(T) -> atom_to_list(T);
+term_to_list(T) when is_integer(T) -> integer_to_list(T);
+term_to_list(T) when is_float(T) -> float_to_string(2, T).
+
+
 float_to_string(Precision, Float) ->
     io_lib:format("~."++integer_to_list(Precision)++"f", [Float]).
-
-
-quote_to_mixmsg({S, P}) ->
-    Price = float_to_string(2, P),
-    string:join(["msg_type=quote", "symbol="++S, "price="++Price], "|").
