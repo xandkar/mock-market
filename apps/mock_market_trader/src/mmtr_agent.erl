@@ -122,14 +122,11 @@ mixmsg_to_props(Msg) ->
     Props.
 
 
-mixprops_to_record(Props) ->
-    case proplists:get_value("type", Props) of
-        "quote" ->
-            #quote{
-                symbol=proplists:get_value("symbol", Props),
-                price=list_to_float(proplists:get_value("price", Props))
-            }
-    end.
+mixprops_to_record([{"type", "quote"} | Props]) ->
+    #quote{
+        symbol = proplists:get_value("symbol", Props),
+        price  = list_to_float(proplists:get_value("price", Props))
+    }.
 
 
 split(Str, RegEx) ->
