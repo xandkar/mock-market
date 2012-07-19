@@ -21,7 +21,9 @@ of technology and concepts that I'm interested in :)
 
 ### Serialization format ###
 MIX: Mock Information eXchange, a FIX-like message format.
-`"msg_type=type_value|key_1=value_1|...|key_n=value_n"`
+```
+"msg_type=type_value|key_1=value_1|...|key_n=value_n\n"
+```
 
 
 Road Map
