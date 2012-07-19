@@ -87,6 +87,19 @@ handle_info(_Msg, State) ->
 %% ============================================================================
 
 handle_data(Socket, _Data) ->
-    Quotes = ets:lookup(?TICKER_TABLE_ID, quotes),
-    Reply = term_to_binary(Quotes),
-    gen_tcp:send(Socket, Reply).
+    Msgs = quotes_to_mixmsgs(ets:lookup(?TICKER_TABLE_ID, quotes)),
+    gen_tcp:send(Socket, Msgs).
+
+
+quotes_to_mixmsgs([]) -> "\n";
+quotes_to_mixmsgs([{quotes, Quotes}]) ->
+    string:join([quote_to_mixmsg(Q) || Q <- Quotes], "\n").
+
+
+float_to_string(Precision, Float) ->
+    io_lib:format("~."++integer_to_list(Precision)++"f", [Float]).
+
+
+quote_to_mixmsg({S, P}) ->
+    Price = float_to_string(2, P),
+    string:join(["msg_type=quote", "symbol="++S, "price="++Price], "|").

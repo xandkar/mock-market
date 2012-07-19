@@ -12,10 +12,16 @@ while all events are random, eventually "mock_market_exchange" will facilitate
 trading competition between competing trading agents. Once protocol is
 designed, any implementation should be able join the trading competition.
 
+
 ### Disclaimer ###
 I don't actually know anything (nor much care) about the problem domain, it
 just seems like a convenient, simple paradigm to employ and orchestrate a lot
 of technology and concepts that I'm interested in :)
+
+
+### Serialization format ###
+MIX: Mock Information eXchange, a FIX-like message format.
+`"msg_type=type_value|key_1=value_1|...|key_n=value_n"`
 
 
 Road Map
